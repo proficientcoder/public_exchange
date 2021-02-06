@@ -4,31 +4,29 @@
 <head>
 	<style type="text/css">
 		.sidenav {
-			height:100%;
-			width:160px;
-			position: fixed;
+			padding-left: 5px;
+			padding-right: 5px;
+			height:60px;
+			width:100%;
 			z-index:1;
-			top:0;
-			left:0;
 			background-color:#111;
 			overflow-x: :hidden;
-			padding-top:20px;
-		}    
+		}
 
-                .sidenav a {
-			padding:6px 8px 6px 16px;
+        .sidenav a {
+			float: left;
+			padding:8px 8px 6px 8px;
 			text-decoration: none;
 			font-size:25px;
 			color: #818181;
-			display:block;
-		}  
+		}
   
-                .sidenav a:hover{
+        .sidenav a:hover{
 			color:#f1f1f1;
 		}     
 
-                .main{
-			margin-left:160px;
+        .main{
+			margin-left:0px;
 			padding: 0px 10px;
 		}   
     </style>
@@ -38,21 +36,27 @@
  
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
  
-	<title>{% block title %}Tim's Site{% endblock %}</title>
+	<title>{% block title %}public-exchange.com{% endblock %}</title>
 </head>
  
 <body>
 	<div class="sidenav">
-		<a href="/">Home</a>
-		<a href="/create">Create</a>
-		<a href="/2">View</a>
+		<a href="{% url 'home' %}">Home</a>
+		{% if not user.is_authenticated %}
+		<a href="{% url 'login' %}" style="float:right;">Login</a>
+		<a href="{% url 'register' %}" style="float:right;">Register</a>
+		{% endif %}
+		{% if user.is_authenticated %}
+		<a href="{% url 'logout' %}" style="float:right;">Logout - {{ user.username }}</a>
+		{% endif %}
 	</div>
  
 	<div id="content" name="content" class="main">
 		<div class="row justify-content-center">
 			<div class="col-8">
-				<h1 class="mt-2">My Site</h1>
-				<hr class="mt-0 mb-4">
+				{% if user.is_authenticated %}
+
+    			{% endif %}
 				{% block content %}
 				{% endblock %}
 			</div>
