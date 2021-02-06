@@ -26,6 +26,12 @@
   <component name="PropertiesComponent">
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/account/templates/account" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\public_exchange\account\templates\account" />
+    </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -37,5 +43,11 @@
       <updated>1612548112110</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="409" y="276" width="585" height="888" key="find.popup" timestamp="1612642374399">
+      <screen x="62" y="0" width="3378" height="1440" />
+    </state>
+    <state x="409" y="276" width="585" height="888" key="find.popup/62.0.3378.1440/3502.164.1858.1080@62.0.3378.1440" timestamp="1612642374399" />
   </component>
 </project>

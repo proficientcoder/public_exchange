@@ -12,8 +12,16 @@ def register(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            return redirect(f'/account/register_success.html')
+            return render(request, 'account/register_success.html')
     else:
         form = UserCreationForm()
     return render(request, 'account/register.html', {'form': form})
 
+
+def account(request):
+    return render(request, 'account/account.html')
+
+
+def recover(request):
+    # Recoverform
+    return render(request, 'account/account.html')
