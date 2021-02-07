@@ -1,6 +1,6 @@
 from django import forms
-from contract.models import Contract
 
+from core.models import Contract
 
 
 class ContractCreationForm(forms.ModelForm):

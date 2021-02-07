@@ -4,6 +4,6 @@ from django.contrib.auth import views as auth_views
 from contract import views
 
 urlpatterns = [
-    path('register/', views.register, name='create'),
-
+    path('register/', views.register, name='contract_create'),
+    path('', views.contract, name='contract_'),
 ]
