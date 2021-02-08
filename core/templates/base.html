@@ -45,8 +45,6 @@
 	<div class="sidenav">
 		<a href="{% url 'home' %}">Home</a>
 		<a href="{% url 'account_' %}">Account</a>
-		<a href="{% url 'contract_' %}">Contract</a>
-		<a href="{% url 'home' %}">Exchange</a>
 		{% if not user.is_authenticated %}
 		<a href="{% url 'core_login' %}" style="float:right;">Login</a>
 		<a href="{% url 'core_register' %}" style="float:right;">Register</a>

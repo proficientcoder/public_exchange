@@ -11,4 +11,4 @@ class ContractCreationForm(forms.ModelForm):
                   'unique',
                   'website',
                   'expiry_date',
-                  'underlying_value']
+                  'details']

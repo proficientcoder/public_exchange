@@ -1,25 +1,33 @@
 {% extends 'base.html' %}
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}Your account - public-exchange.com{% endblock %}
 
 {% block content %}
-  <h2>Account details</h2>
+  <h2>Your account</h2>
   {% if not user.is_authenticated %}
+  <h3>Reset password</h3>
   <p>You are not currently logged in.
   <a href="{% url 'account_recover' %}">Click here if you want to recover your account.</a></p>
   {% endif %}
   {% if user.is_authenticated %}
-  <p>
+  <h3>
     Emails
-  </p>
-  <p>
+  </h3>
+  <h3>
     API tokens
-  </p>
-  <p>
+  </h3>
+  <h3>
     Contracts
-  </p>
-  <p>
+  </h3>
+  <h3>
     Portfolio
+  </h3>
+  <p>
+    <a href="{% url 'account_deposit' %}">Deposit</a>
+    <a href="{% url 'account_withdraw' %}">Withdraw</a>
   </p>
+  <h3>
+    Exposure
+  </h3>
   {% endif %}
 {% endblock %}
