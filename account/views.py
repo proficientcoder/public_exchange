@@ -6,7 +6,10 @@ from core.models import Contract, Ownership
 
 
 def account(request):
-    return render(request, 'account/account.html')
+    Contracts = Contract.objects.filter(created_by=request.user)
+    Ownerships = Ownership.objects.filter(owned_by=request.user)
+
+    return render(request, 'account/account.html', {'Ownerships': Ownerships, 'Contracts': Contracts})
 
 
 def recover(request):

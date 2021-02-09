@@ -13,19 +13,43 @@
   <h3>
     Emails
   </h3>
+  <hr>
   <h3>
     API tokens
   </h3>
+  <hr>
   <h3>
     Contracts
   </h3>
+    <p>
+      <a href="{% url 'contract_create' %}">Create</a>
+    </p>
+    <table>
+    <tr><th>Description</th><th>Legal form</th><th>Expiry date</th></tr>
+    {% for c in Contracts %}
+    <tr>
+      <td>{{c.descriptive_name}}</td><td>{{c.legal}}</td><td>{{c.expiry_date}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+  <hr>
   <h3>
     Portfolio
   </h3>
   <p>
     <a href="{% url 'account_deposit' %}">Deposit</a>
     <a href="{% url 'account_withdraw' %}">Withdraw</a>
+    <br>
+    <table>
+    <tr><th>Ticker</th><th>Issuer</th><th>Amount</th></tr>
+    {% for o in Ownerships %}
+    <tr>
+      <td>{{o.contract.descriptive_name}}</td><td>{{o.created_by}}</td><td>{{o.amount}}</td>
+    </tr>
+    {% endfor %}
+    </table>
   </p>
+  <hr>
   <h3>
     Exposure
   </h3>

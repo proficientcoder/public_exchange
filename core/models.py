@@ -3,9 +3,10 @@ from django.contrib.auth.models import User
 
 
 # Create your models here.
-legal_forms = (
-    (1, 'Currency'),
-)
+legal_forms = [
+    ('CURRENCY', 'CURRENCY'),
+    ('SHARES', 'SHARES'),
+]
 
 
 class User_details(models.Model):
@@ -18,7 +19,7 @@ class User_details(models.Model):
 class Contract(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     descriptive_name = models.CharField(max_length=32, unique=True)
-    legal = models.IntegerField(choices=legal_forms, default=1)
+    legal = models.CharField(max_length=16, choices=legal_forms)
     unique = models.BooleanField(default=True)
     expandable = models.BooleanField(default=False)
     allow_fractions = models.BooleanField(default=False)
@@ -32,6 +33,6 @@ class Ownership(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, default=1)
     created_by = models.ForeignKey(User, related_name='create_by', on_delete=models.CASCADE, default=1)
     owned_by = models.ForeignKey(User, related_name='owned_by', on_delete=models.CASCADE, default=1)
-    amount = models.IntegerField(choices=legal_forms, default=1)
+    amount = models.IntegerField(default=1)
 
 
