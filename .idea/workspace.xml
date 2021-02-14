@@ -26,7 +26,7 @@
   <component name="PropertiesComponent">
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/user/templates/user" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/exchange/templates/exchange" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
@@ -35,11 +35,11 @@
       <recent name="D:\public_exchange\core\templates\core" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\public_exchange\exchange\templates\exchange" />
       <recent name="D:\public_exchange\user\templates\user" />
       <recent name="D:\public_exchange\core\templates\core" />
       <recent name="D:\public_exchange\core\templates" />
       <recent name="D:\public_exchange\account\templates\account" />
-      <recent name="D:\public_exchange\contract\templates\contract" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />

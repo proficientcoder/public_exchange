@@ -21,4 +21,5 @@ urlpatterns = [
     path('', coreViews.home, name='home'),
     path('admin/', admin.site.urls),
     path('user/', include('user.urls')),
+    path('exchange/', include('exchange.urls'))
 ]
