@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Create ticker - public-exchange.com{% endblock %}
+
+{% block content %}
+  <h2>Deposit FIAT</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Deposit</button>
+  </form>
+{% endblock %}
