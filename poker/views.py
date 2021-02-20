@@ -53,6 +53,7 @@ def update(t, didAct=False):
 
         if nrActive >= 2:
             t.state = 1
+            t.board = ''
             t.dealer = nextPlayer(t, t.dealer)
             t.deck = createDeck()
             for i in range(1, t.size + 1):
@@ -106,7 +107,18 @@ def update(t, didAct=False):
 
                 # Next!
                 if t.next_to_act == t.last_to_act:
-                    pass    # This round is over
+                    if t.board == '':
+                        bets = 0
+                        for i in range(1, t.size + 1):
+                            bets += getattr(t, f'player_{i}_bet')
+                            setattr(t, f'player_{i}_bet', 0)
+                        t.pot += bets
+                        r = t.deck[0:2]
+                        t.deck = t.deck[2:]
+                        t.board += r
+                        t.next_to_act = nextPlayer(t, t.dealer)
+                        t.last_to_act = prevPlayer(t, t.next_to_act)
+
                 else:
                     t.next_to_act = nextPlayer(t, t.next_to_act)
 
@@ -136,7 +148,7 @@ def pokerTableState(request, id):
         'next_to_act': t.next_to_act,
         'last_to_act': t.last_to_act,
         'players': [],
-        'board': [None, None, None, None, None],
+        'board': t.board,
         'pot': '0',
         'actions': [],
     }
@@ -184,6 +196,21 @@ def actionFold(request, id):
 
     if getattr(t, f'player_{t.next_to_act}').username == cuser:
         setattr(t, f'player_{t.next_to_act}_cards', None)
+        update(t, didAct=True)
+
+    return JsonResponse({})
+
+
+def actionCheck(request, id):
+    key = request.GET['key']
+    user = apiKey.objects.filter(key=key)
+    cuser = user[0].user
+    cuser = cuser.username
+
+    t = PokerTable.objects.filter(id=id)
+    t = t[0]
+
+    if getattr(t, f'player_{t.next_to_act}').username == cuser:
         update(t, didAct=True)
 
     return JsonResponse({})
