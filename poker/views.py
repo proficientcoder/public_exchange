@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from poker.models import PokerTable
+from user.models import apiKey
 from django.contrib.auth.models import User
 from django.db.models import Q
 import random
@@ -31,7 +32,19 @@ def nextPlayer(t, pos):
     return pos
 
 
-def update(t):
+def prevPlayer(t, pos):
+    pos -= 1
+    if pos < 1:
+        pos = t.size
+    while getattr(t, f'player_{pos}') is None:
+        pos -= 1
+        if pos < 1:
+            pos = t.size
+
+    return pos
+
+
+def update(t, didAct=False):
     if t.state == 0:
         nrActive = 0
         for i in range(1, t.size+1):
@@ -50,25 +63,73 @@ def update(t):
 
             sb_pos = nextPlayer(t, t.dealer)
             setattr(t, f'player_{sb_pos}_bet', t.blind / 2)
+            setattr(t, f'player_{sb_pos}_money', getattr(t, f'player_{sb_pos}_money') - (t.blind/2))
 
             bb_pos = nextPlayer(t, sb_pos)
             setattr(t, f'player_{bb_pos}_bet', t.blind)
+            setattr(t, f'player_{bb_pos}_money', getattr(t, f'player_{bb_pos}_money') - t.blind)
 
             t.next_to_act = nextPlayer(t, bb_pos)
             t.last_to_act = bb_pos
 
             t.save()
 
+    if t.state == 1:
+        if didAct:
+            # Last player standing?
+            c = 0
+            p = None
+            for i in range(1, t.size + 1):
+                if getattr(t, f'player_{i}_cards'):
+                    p = i
+                    c += 1
+
+            if c == 1:
+                money = getattr(t, f'player_{i}_money') + t.pot
+                t.pot = 0
+                for i in range(1, t.size + 1):
+                    money += getattr(t, f'player_{i}_bet')
+                    setattr(t, f'player_{i}_bet', 0)
+                setattr(t, f'player_{p}_money', money)
+                t.state = 0
+            else:
+                high = 0
+                pos = None
+                # Did this player raise or bet?
+                for i in range(1, t.size + 1):
+                    money = getattr(t, f'player_{i}_bet')
+                    if money > high:
+                        high = money
+                        pos = i
+                if pos == t.next_to_act:
+                    t.last_to_act = prevPlayer(t, t.next_to_act)
+
+                # Next!
+                if t.next_to_act == t.last_to_act:
+                    pass    # This round is over
+                else:
+                    t.next_to_act = nextPlayer(t, t.next_to_act)
+
+            t.save()
+        else:
+            pass    # UPDATE on timers etc
+
 
 
 
 def pokerTableState(request, id):
+    key = request.GET['key']
+    user = apiKey.objects.filter(key=key)
+    cuser = user[0].user
+    cuser = cuser.username
+
     t = PokerTable.objects.filter(id=id)
     t = t[0]
 
     update(t)
 
     state = {
+        'you': cuser,
         'nrOfSeats': t.size,
         'dealer': t.dealer,
         'blind': t.blind,
@@ -85,10 +146,12 @@ def pokerTableState(request, id):
         max_bet = max(max_bet, getattr(t, f'player_{i}_bet'))
         if getattr(t, f'player_{i}') is not None:
             state['players'].append({'name': getattr(t, f'player_{i}').username,
-                                     'balance': '50.0',
+                                     'balance': getattr(t, f'player_{i}_money'),
                                      'last_bet': getattr(t, f'player_{i}_bet'),
                                      'cards': getattr(t, f'player_{i}_cards'),
                                      })
+            if getattr(t, f'player_{i}').username != cuser:
+                state['players'][-1]['cards'] = ''
         else:
             state['players'].append(None)
 
@@ -101,21 +164,51 @@ def pokerTableState(request, id):
         state['actions'].append('FOLD')
         state['actions'].append('CALL')
 
-        if max_bet == 0:
-            state['actions'].append('BET')
-        else:
-            state['actions'].append('RAISE')
+    if max_bet == 0:
+        state['actions'].append('BET')
+
+    state['actions'].append('RAISE')
 
 
     return JsonResponse(state)
 
 
 def actionFold(request, id):
+    key = request.GET['key']
+    user = apiKey.objects.filter(key=key)
+    cuser = user[0].user
+    cuser = cuser.username
+
     t = PokerTable.objects.filter(id=id)
     t = t[0]
 
-    setattr(t, f'player_{t.next_to_act}_cards', None)
-    t.save()
+    if getattr(t, f'player_{t.next_to_act}').username == cuser:
+        setattr(t, f'player_{t.next_to_act}_cards', None)
+        update(t, didAct=True)
+
+    return JsonResponse({})
+
+
+def actionCall(request, id):
+    key = request.GET['key']
+    user = apiKey.objects.filter(key=key)
+    cuser = user[0].user
+    cuser = cuser.username
+
+    t = PokerTable.objects.filter(id=id)
+    t = t[0]
+
+    if getattr(t, f'player_{t.next_to_act}').username == cuser:
+        high = 0
+        for i in range(1, t.size + 1):
+            money = getattr(t, f'player_{i}_bet')
+            if money > high:
+                high = money
+
+        setattr(t, f'player_{t.next_to_act}_bet', high)
+
+        update(t, didAct=True)
+
     return JsonResponse({})
 
 
@@ -143,13 +236,32 @@ def joinTable(request, id):
 
 
 def listMyTables(request):
+    key = request.GET['key']
+    user = apiKey.objects.filter(key=key)
+    cuser = user[0].user
+    cuser = cuser.pk
+
     tables = []
 
-    u = User.objects.filter(id=1)
+    u = User.objects.filter(id=cuser)
     u = u[0]
 
     pt = PokerTable.objects.filter(Q(player_1=u) | Q(player_2=u))
     for p in pt:
         tables.append(p.pk)
+
+    return JsonResponse({'tables': tables})
+
+
+def listTables(request):
+    tables = []
+
+    u = User.objects.filter(id=1)
+    u = u[0]
+
+    pt = PokerTable.objects.all()
+    for p in pt:
+        tables.append({'id': p.pk,
+                       'size': p.size})
 
     return JsonResponse({'tables': tables})
