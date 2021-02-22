@@ -1,132 +1,10 @@
 from django.http import JsonResponse
 from poker.models import PokerTable
+from poker.pokerTable import ClassPokerTable
 from user.models import apiKey
 from django.contrib.auth.models import User
 from django.db.models import Q
 import random
-
-
-def createDeck():
-    deck = []
-    cards = '23456789TJQKA'
-    suits = '♠♥♦♣'
-
-    for c in cards:
-        for s in suits:
-            deck.append(c + s)
-
-    random.shuffle(deck)
-    deck = ''.join(deck)
-    return deck
-
-
-def nextPlayer(t, pos):
-    pos += 1
-    if pos > t.size:
-        pos = 1
-    while getattr(t, f'player_{pos}') is None:
-        pos += 1
-        if pos > t.size:
-            pos = 1
-
-    return pos
-
-
-def prevPlayer(t, pos):
-    pos -= 1
-    if pos < 1:
-        pos = t.size
-    while getattr(t, f'player_{pos}') is None:
-        pos -= 1
-        if pos < 1:
-            pos = t.size
-
-    return pos
-
-
-def update(t, didAct=False):
-    if t.state == 0:
-        nrActive = 0
-        for i in range(1, t.size+1):
-            if getattr(t, f'player_{i}') is not None:
-                nrActive += 1
-
-        if nrActive >= 2:
-            t.state = 1
-            t.board = ''
-            t.dealer = nextPlayer(t, t.dealer)
-            t.deck = createDeck()
-            for i in range(1, t.size + 1):
-                if getattr(t, f'player_{i}') is not None:
-                    r = t.deck[0:4]
-                    t.deck = t.deck[4:]
-                    setattr(t, f'player_{i}_cards', r)
-
-            sb_pos = nextPlayer(t, t.dealer)
-            setattr(t, f'player_{sb_pos}_bet', t.blind / 2)
-            setattr(t, f'player_{sb_pos}_money', getattr(t, f'player_{sb_pos}_money') - (t.blind/2))
-
-            bb_pos = nextPlayer(t, sb_pos)
-            setattr(t, f'player_{bb_pos}_bet', t.blind)
-            setattr(t, f'player_{bb_pos}_money', getattr(t, f'player_{bb_pos}_money') - t.blind)
-
-            t.next_to_act = nextPlayer(t, bb_pos)
-            t.last_to_act = bb_pos
-
-            t.save()
-
-    if t.state == 1:
-        if didAct:
-            # Last player standing?
-            c = 0
-            p = None
-            for i in range(1, t.size + 1):
-                if getattr(t, f'player_{i}_cards'):
-                    p = i
-                    c += 1
-
-            if c == 1:
-                money = getattr(t, f'player_{i}_money') + t.pot
-                t.pot = 0
-                for i in range(1, t.size + 1):
-                    money += getattr(t, f'player_{i}_bet')
-                    setattr(t, f'player_{i}_bet', 0)
-                setattr(t, f'player_{p}_money', money)
-                t.state = 0
-            else:
-                high = 0
-                pos = None
-                # Did this player raise or bet?
-                for i in range(1, t.size + 1):
-                    money = getattr(t, f'player_{i}_bet')
-                    if money > high:
-                        high = money
-                        pos = i
-                if pos == t.next_to_act:
-                    t.last_to_act = prevPlayer(t, t.next_to_act)
-
-                # Next!
-                if t.next_to_act == t.last_to_act:
-                    if t.board == '':
-                        bets = 0
-                        for i in range(1, t.size + 1):
-                            bets += getattr(t, f'player_{i}_bet')
-                            setattr(t, f'player_{i}_bet', 0)
-                        t.pot += bets
-                        r = t.deck[0:2]
-                        t.deck = t.deck[2:]
-                        t.board += r
-                        t.next_to_act = nextPlayer(t, t.dealer)
-                        t.last_to_act = prevPlayer(t, t.next_to_act)
-
-                else:
-                    t.next_to_act = nextPlayer(t, t.next_to_act)
-
-            t.save()
-        else:
-            pass    # UPDATE on timers etc
-
-
 
 
 def pokerTableState(request, id):
@@ -186,19 +64,19 @@ def pokerTableState(request, id):
 
 
 def actionFold(request, id):
-    key = request.GET['key']
-    user = apiKey.objects.filter(key=key)
-    cuser = user[0].user
-    cuser = cuser.username
+    table = ClassPokerTable(request, id)
 
-    t = PokerTable.objects.filter(id=id)
-    t = t[0]
-
-    if getattr(t, f'player_{t.next_to_act}').username == cuser:
-        setattr(t, f'player_{t.next_to_act}_cards', None)
-        update(t, didAct=True)
+    try:
+        if table.isRemoteUserAlsoTheNextToAct():
+            table.setPlayerCards(table.getNextToAct(),
+                                 None)
+            table.updateOnAction()
+    except LookupError:
+        print('A lookup error happened!')
+        pass
 
     return JsonResponse({})
+
 
 
 def actionCheck(request, id):
