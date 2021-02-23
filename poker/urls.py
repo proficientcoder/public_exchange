@@ -1,7 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
-from poker import views as pokerViews
+import poker.views as pokerViews
+
 
 urlpatterns = [
     path('tableState/<int:id>/', pokerViews.pokerTableState, name='pokerTableState'),

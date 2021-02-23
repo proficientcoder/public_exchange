@@ -1,33 +1,25 @@
 import random
 from user.models import apiKey
 from django.contrib.auth.models import User
-from poker.models import PokerTable
+
+import poker.models as pokerModels
+import user.functions as userFunctions
 
 
-class ClassPokerTable:
+class PokerTable:
     db = None
     user = None
 
     def __init__(self, id):
-        tmp = PokerTable.objects.filter(id=id)
+        tmp = pokerModels.PokerTable.objects.filter(id=id)
         if len(tmp) != 1:
             raise LookupError   # The table id could not be found
 
         self.db = tmp[0]
 
-    def __init(self, request, id):
+    def __init__(self, request, id):
         self.__init__(id)
-
-        if 'key' not in request.GET:
-            raise LookupError   # Key is not specified
-
-        key = request.GET['key']
-        tmp = apiKey.objects.filter(key=key)
-
-        if len(tmp) != 1:
-            raise LookupError   # The API key could not be found
-
-        self.user = tmp[0].user
+        self.user = userFunctions.getUserFromKey(request)
 
     def getPlayerName(self, nr):
         return getattr(self.db, f'player_{nr}').username

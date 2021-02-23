@@ -1,10 +1,11 @@
+import random
 from django.http import JsonResponse
-from poker.models import PokerTable
-from poker.pokerTable import ClassPokerTable
-from user.models import apiKey
 from django.contrib.auth.models import User
 from django.db.models import Q
-import random
+
+import poker.models as pokerModels
+import user.models as userModels
+import poker.classes as pokerClasses
 
 
 def pokerTableState(request, id):
@@ -64,7 +65,7 @@ def pokerTableState(request, id):
 
 
 def actionFold(request, id):
-    table = ClassPokerTable(request, id)
+    table = pokerClasses.PokerTable(request, id)
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
@@ -78,47 +79,45 @@ def actionFold(request, id):
     return JsonResponse({})
 
 
-
 def actionCheck(request, id):
-    key = request.GET['key']
-    user = apiKey.objects.filter(key=key)
-    cuser = user[0].user
-    cuser = cuser.username
+    table = pokerClasses.PokerTable(request, id)
 
-    t = PokerTable.objects.filter(id=id)
-    t = t[0]
-
-    if getattr(t, f'player_{t.next_to_act}').username == cuser:
-        update(t, didAct=True)
+    try:
+        if table.isRemoteUserAlsoTheNextToAct():
+            table.updateOnAction()
+    except LookupError:
+        print('A lookup error happened!')
+        pass
 
     return JsonResponse({})
 
 
 def actionCall(request, id):
-    key = request.GET['key']
-    user = apiKey.objects.filter(key=key)
-    cuser = user[0].user
-    cuser = cuser.username
+    table = pokerClasses.PokerTable(request, id)
 
-    t = PokerTable.objects.filter(id=id)
-    t = t[0]
+    try:
+        if table.isRemoteUserAlsoTheNextToAct():
+            highestBet = 0
+            for i in table.getPlayerRange():
+                money = table.getPlayerMoney(i)
+                if money > highestBet:
+                    highestBet = money
 
-    if getattr(t, f'player_{t.next_to_act}').username == cuser:
-        high = 0
-        for i in range(1, t.size + 1):
-            money = getattr(t, f'player_{i}_bet')
-            if money > high:
-                high = money
+            # Move the money
+            difference = highestBet - table.getPlayerBet(table.getNextToAct())
+            table.setPlayerBet(highestBet)
+            table.setPlayerMoney(table.getPlayerMoney() - difference)
 
-        setattr(t, f'player_{t.next_to_act}_bet', high)
-
-        update(t, didAct=True)
+            table.updateOnAction()
+    except LookupError:
+        print('A lookup error happened!')
+        pass
 
     return JsonResponse({})
 
 
 def createTable(request):
-    t = PokerTable(size=2)
+    t = pokerModels.PokerTable(size=2)
     t.save()
     return JsonResponse({})
 
