@@ -10,6 +10,7 @@ urlpatterns = [
     path('joinTable/<int:id>/', pokerViews.joinTable, name='pokerJoinTable'),
     path('actionFold/<int:id>/', pokerViews.actionFold, name='pokerActionFold'),
     path('actionCall/<int:id>/', pokerViews.actionCall, name='pokerActionCall'),
+    path('actionRaise/<int:id>/', pokerViews.actionRaise, name='pokerActionRaise'),
     path('actionCheck/<int:id>/', pokerViews.actionCheck, name='pokerActionCheck'),
     path('listMyTables/', pokerViews.listMyTables, name='pokerListMyTables'),
     path('listTables/', pokerViews.listTables, name='pokerListTables'),

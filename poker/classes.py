@@ -24,7 +24,7 @@ class PokerTable:
         self.db.save()
 
     def getSize(self):
-        return self.db.size
+        return int(self.db.size)
 
     def getPlayerName(self, nr):
         return getattr(self.db, f'player_{nr}').username
@@ -39,13 +39,13 @@ class PokerTable:
         setattr(self.db, f'player_{nr}_bet', what)
 
     def getPlayerBet(self, nr):
-        return getattr(self.db, f'player_{nr}_bet')
+        return float(getattr(self.db, f'player_{nr}_bet'))
 
     def setPlayerMoney(self, nr, what):
         setattr(self.db, f'player_{nr}_money', what)
 
     def getPlayerMoney(self, nr):
-        return getattr(self.db, f'player_{nr}_money')
+        return float(getattr(self.db, f'player_{nr}_money'))
 
     def getNextToAct(self):
         return self.db.next_to_act
@@ -75,7 +75,7 @@ class PokerTable:
         self.db.board = what
 
     def getPot(self):
-        return self.db.pot
+        return float(self.db.pot)
 
     def setPot(self, what):
         self.db.pot = what
@@ -98,7 +98,7 @@ class PokerTable:
         self.db.state = what
 
     def getBlind(self):
-        return self.db.blind
+        return float(self.db.blind)
 
     def getPlayer(self, nr):
         return getattr(self.db, f'player_{nr}')
@@ -144,15 +144,14 @@ class PokerTable:
         return self.getPlayerName(self.getNextToAct()) == self.user.username
 
     def didNextToActRaise(self):
-        highestBet = 0
-        lastBetPos = None
+        myBet = self.getPlayerBet(self.getNextToAct())
+
         for i in self.getPlayerRange():
             bet = self.getPlayerBet(i)
-            if bet > highestBet:
-                highestBet = bet
-                lastBetPos = i
+            if bet == myBet and i != self.getNextToAct():
+                return False
 
-        return lastBetPos == self.getNextToAct()
+        return True
 
     def getNextPlayerStillInTheGame(self, position):
         position += 1

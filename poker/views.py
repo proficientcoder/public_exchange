@@ -109,6 +109,37 @@ def actionCall(request, id):
     return JsonResponse({})
 
 
+def actionRaise(request, id):
+    table = pokerClasses.PokerTable(request, id)
+
+    try:
+        if table.isRemoteUserAlsoTheNextToAct():
+            # Bet
+            if 'bet' not in request.GET:
+                raise LookupError  # Key is not specified
+
+            highestBet = 0
+            for i in table.getPlayerRange():
+                money = table.getPlayerBet(i)
+                if money > highestBet:
+                    highestBet = money
+
+            highestBet += float(request.GET['bet'])
+
+            # Move the money
+            i = table.getNextToAct()
+            difference = highestBet - table.getPlayerBet(i)
+            table.setPlayerBet(i, highestBet)
+            table.setPlayerMoney(i, table.getPlayerMoney(i) - difference)
+
+            table.updateOnAction()
+    except LookupError:
+        print('A lookup error happened!')
+        pass
+
+    return JsonResponse({})
+
+
 def createTable(request):
     t = pokerModels.PokerTable(size=2)
     t.save()
