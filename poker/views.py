@@ -1,52 +1,45 @@
-import random
 from django.http import JsonResponse
-from django.contrib.auth.models import User
 from django.db.models import Q
 
 import poker.models as pokerModels
-import user.models as userModels
 import poker.classes as pokerClasses
+import user.functions as userFunctions
 
 
 def pokerTableState(request, id):
-    key = request.GET['key']
-    user = apiKey.objects.filter(key=key)
-    cuser = user[0].user
-    cuser = cuser.username
+    user = userFunctions.getUserFromKey(request)
+    table = pokerClasses.PokerTable(request, id)
 
-    t = PokerTable.objects.filter(id=id)
-    t = t[0]
-
-    update(t)
+    table.updateWithoutAction()
 
     state = {
-        'you': cuser,
-        'nrOfSeats': t.size,
-        'dealer': t.dealer,
-        'blind': t.blind,
-        'next_to_act': t.next_to_act,
-        'last_to_act': t.last_to_act,
-        'players': [],
-        'board': t.board,
-        'pot': '0',
+        'you': user.username,
+        'nrOfSeats': table.getSize(),
+        'dealer': table.getDealer(),
+        'blind': table.getBlind(),
+        'next_to_act': table.getNextToAct(),
+        'last_to_act': table.getLastToAct(),
+        'players': [None],  # Add single element for client offset
+        'board': table.getBoardCards(),
+        'pot': table.getPot(),
         'actions': [],
     }
 
     max_bet = 0
-    for i in range(1, t.size+1):
-        max_bet = max(max_bet, getattr(t, f'player_{i}_bet'))
-        if getattr(t, f'player_{i}') is not None:
-            state['players'].append({'name': getattr(t, f'player_{i}').username,
-                                     'balance': getattr(t, f'player_{i}_money'),
-                                     'last_bet': getattr(t, f'player_{i}_bet'),
-                                     'cards': getattr(t, f'player_{i}_cards'),
+    for i in table.getPlayerRange():
+        max_bet = max(max_bet, table.getPlayerBet(i))
+        if table.isPlayer(i):
+            state['players'].append({'name': table.getPlayer(i).username,
+                                     'balance': table.getPlayerMoney(i),
+                                     'last_bet': table.getPlayerBet(i),
+                                     'cards': table.getPlayerCards(i),
                                      })
-            if getattr(t, f'player_{i}').username != cuser:
+            if table.getPlayer(i) != user:
                 state['players'][-1]['cards'] = ''
         else:
             state['players'].append(None)
 
-    actor_bet = getattr(t, f'player_{t.next_to_act}_bet')
+    actor_bet = table.getPlayerBet(table.getNextToAct())
 
     if max_bet == actor_bet:
         state['actions'].append('CHECK')
@@ -59,7 +52,6 @@ def pokerTableState(request, id):
         state['actions'].append('BET')
 
     state['actions'].append('RAISE')
-
 
     return JsonResponse(state)
 
@@ -99,14 +91,15 @@ def actionCall(request, id):
         if table.isRemoteUserAlsoTheNextToAct():
             highestBet = 0
             for i in table.getPlayerRange():
-                money = table.getPlayerMoney(i)
+                money = table.getPlayerBet(i)
                 if money > highestBet:
                     highestBet = money
 
             # Move the money
-            difference = highestBet - table.getPlayerBet(table.getNextToAct())
-            table.setPlayerBet(highestBet)
-            table.setPlayerMoney(table.getPlayerMoney() - difference)
+            i = table.getNextToAct()
+            difference = highestBet - table.getPlayerBet(i)
+            table.setPlayerBet(i, highestBet)
+            table.setPlayerMoney(i, table.getPlayerMoney(i) - difference)
 
             table.updateOnAction()
     except LookupError:
@@ -123,36 +116,26 @@ def createTable(request):
 
 
 def joinTable(request, id):
-    u = User.objects.filter(id=1)
-    u = u[0]
+    user = userFunctions.getUserFromKey(request)
 
-    t = PokerTable.objects.filter(id=id)
-    if len(t) == 1:
-        t = t[0]
-        if t.player_1 == None:
-            t.player_1 = u
-            t.save()
-        elif t.player_2 == None:
-            t.player_2 = u
-            t.save()
+    table = pokerClasses.PokerTable(request, id)
+    for i in table.getPlayerRange():
+        if table.isPlayer(i) is False:
+            table.setPlayer(user)
+            table.save()
+            return
 
     return JsonResponse({})
 
 
 def listMyTables(request):
-    key = request.GET['key']
-    user = apiKey.objects.filter(key=key)
-    cuser = user[0].user
-    cuser = cuser.pk
+    user = userFunctions.getUserFromKey(request)
 
     tables = []
 
-    u = User.objects.filter(id=cuser)
-    u = u[0]
-
-    pt = PokerTable.objects.filter(Q(player_1=u) | Q(player_2=u))
-    for p in pt:
-        tables.append(p.pk)
+    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_1=user.pk) | Q(player_2=user.pk))
+    for table in pokerTables:
+        tables.append(table.pk)
 
     return JsonResponse({'tables': tables})
 
@@ -160,12 +143,10 @@ def listMyTables(request):
 def listTables(request):
     tables = []
 
-    u = User.objects.filter(id=1)
-    u = u[0]
-
-    pt = PokerTable.objects.all()
-    for p in pt:
-        tables.append({'id': p.pk,
-                       'size': p.size})
+    pokerTables = pokerModels.PokerTable.objects.all()
+    for table in pokerTables:
+        tables.append({'id': table.pk,
+                       'size': table.size})
 
     return JsonResponse({'tables': tables})
+

@@ -10,16 +10,21 @@ class PokerTable:
     db = None
     user = None
 
-    def __init__(self, id):
+    def __init__(self, request, id):
         tmp = pokerModels.PokerTable.objects.filter(id=id)
         if len(tmp) != 1:
             raise LookupError   # The table id could not be found
 
         self.db = tmp[0]
 
-    def __init__(self, request, id):
-        self.__init__(id)
-        self.user = userFunctions.getUserFromKey(request)
+        if 'key' in request.GET:
+            self.user = userFunctions.getUserFromKey(request)
+
+    def save(self):
+        self.db.save()
+
+    def getSize(self):
+        return self.db.size
 
     def getPlayerName(self, nr):
         return getattr(self.db, f'player_{nr}').username
@@ -95,12 +100,18 @@ class PokerTable:
     def getBlind(self):
         return self.db.blind
 
+    def getPlayer(self, nr):
+        return getattr(self.db, f'player_{nr}')
+
+    def setPlayer(self, nr, what):
+        setattr(self.db, f'player_{nr}', what)
+
     # Helpers
 
     def createDeck(self):
         deck = []
         cards = '23456789TJQKA'
-        suits = '♠♥♦♣'
+        suits = 'SHDC'  # ♠♥♦♣
 
         for c in cards:
             for s in suits:
@@ -111,6 +122,12 @@ class PokerTable:
 
     def isPlayerReadyToEnter(self, nr):
         return getattr(self.db, f'player_{nr}') is not None
+
+    def isPlayer(self, nr):
+        if self.getPlayer(nr) is None:
+            return False
+        else:
+            return True
 
     def nextPlayerReadyToEnter(self, position):
         position += 1
@@ -124,7 +141,7 @@ class PokerTable:
         return position
 
     def isRemoteUserAlsoTheNextToAct(self):
-        return self.getPlayerName() == self.db.user.name
+        return self.getPlayerName(self.getNextToAct()) == self.user.username
 
     def didNextToActRaise(self):
         highestBet = 0
@@ -172,6 +189,7 @@ class PokerTable:
             if nrActive >= 2:
                 self.setState(1)
                 self.setBoardCards('')
+                self.setPot(0)
                 self.setDealer(self.nextPlayerReadyToEnter(self.getDealer()))
                 self.createDeck()
 
@@ -181,14 +199,15 @@ class PokerTable:
                         card1 = self.drawCardFromDeck()
                         card2 = self.drawCardFromDeck()
                         self.setPlayerCards(i, card1+card2)
+                        self.setPlayerBet(i, 0)
 
                 sb_pos = self.nextPlayerReadyToEnter(self.getDealer())
                 self.setPlayerBet(sb_pos, self.getBlind()/2)
-                self.setPlayerMoney(self.getPlayerMoney()-self.getPlayerBet(sb_pos))
+                self.setPlayerMoney(sb_pos, self.getPlayerMoney(sb_pos)-self.getPlayerBet(sb_pos))
 
                 bb_pos = self.nextPlayerReadyToEnter(sb_pos)
-                self.setPlayerBet(sb_pos, self.getBlind())
-                self.setPlayerMoney(self.getPlayerMoney()-self.getPlayerBet(sb_pos))
+                self.setPlayerBet(bb_pos, self.getBlind())
+                self.setPlayerMoney(bb_pos, self.getPlayerMoney(bb_pos)-self.getPlayerBet(bb_pos))
 
                 self.setNextToAct(self.getNextPlayerStillInTheGame(bb_pos))
                 self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
@@ -222,11 +241,13 @@ class PokerTable:
         else:
             # If this player raised we need to update last-to-act
             if self.didNextToActRaise():
+                print('1')
                 self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
 
             # If player was the last to act then go to next round
             if self.getNextToAct() == self.getLastToAct():
-                if self.getBoardCards() == '':
+                print('2')
+                if len(self.getBoardCards()) < 10:
                     bets = 0
                     for i in self.getPlayerRange():
                         bets += self.getPlayerBet(i)
@@ -242,6 +263,7 @@ class PokerTable:
                     self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
 
             else:   # Or go to the next player
+                print('3')
                 self.setNextToAct(self.getNextPlayerStillInTheGame(self.getNextToAct()))
 
         self.db.save()
