@@ -67,6 +67,7 @@ class PokerTable:
         for i in self.getPlayerRange():
             if self.getPlayerCards(i):
                 c += 1
+        return c
 
     def getBoardCards(self):
         return self.db.board
@@ -221,12 +222,12 @@ class PokerTable:
     def updateOnAction(self):
         # If state is zero then game is not active
         if self.getState() == 0:
-            return
+            self.db.save()
 
         # If there is only one player left then they win the pot
         winner = None
         if self.getNrOfPlayersWithCards() == 1:
-            winnings = self.db.pot
+            winnings = self.getPot()
             for i in self.getPlayerRange():
                 if self.getPlayerCards(i):
                     winner = i

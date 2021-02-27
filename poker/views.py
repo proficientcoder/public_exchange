@@ -140,21 +140,46 @@ def actionRaise(request, id):
     return JsonResponse({})
 
 
-def createTable(request):
+def tableCreate(request):
     t = pokerModels.PokerTable(size=2)
     t.save()
     return JsonResponse({})
 
 
-def joinTable(request, id):
+def tableJoin(request, id):
     user = userFunctions.getUserFromKey(request)
 
     table = pokerClasses.PokerTable(request, id)
     for i in table.getPlayerRange():
         if table.isPlayer(i) is False:
-            table.setPlayer(user)
+            table.setPlayer(i, user)
+            table.setPlayerMoney(i, 50)
             table.save()
-            return
+            return JsonResponse({})
+
+    return JsonResponse({})
+
+
+def tableLeave(request, id):
+    user = userFunctions.getUserFromKey(request)
+
+    table = pokerClasses.PokerTable(request, id)
+    for i in table.getPlayerRange():
+        if table.isPlayer(i) is True:
+            if table.getPlayer(i) == user:
+                table.setPlayer(i, None)
+                table.setPlayerMoney(i, 0)
+                table.setPlayerCards(i, None)
+
+                # if table.getState() == 1:
+                #     if table.getNextToAct() == i:
+                #         table.setNextToAct(table.getNextPlayerStillInTheGame(table.getNextToAct()))
+                #
+                #     if table.getLastToAct() == i:
+                #         table.setLastToAct(table.getPreviousPlayerStillInTheGame(table.getLastToAct()))
+
+                table.save()
+            return JsonResponse({})
 
     return JsonResponse({})
 
