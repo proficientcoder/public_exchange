@@ -32,10 +32,10 @@ def pokerTableState(request, id):
             state['players'].append({'name': table.getPlayer(i).username,
                                      'balance': table.getPlayerMoney(i),
                                      'last_bet': table.getPlayerBet(i),
-                                     'cards': table.getPlayerCards(i),
+                                     'cards': '',
                                      })
-            if table.getPlayer(i) != user:
-                state['players'][-1]['cards'] = ''
+            if table.getPlayer(i) == user or table.getState == 2:
+                state['players'][-1]['cards'] = table.getPlayerCards(i)
         else:
             state['players'].append(None)
 
@@ -77,7 +77,7 @@ def actionCheck(request, id):
     try:
         if table.isRemoteUserAlsoTheNextToAct():
             table.updateOnAction()
-    except LookupError:
+    except RecursionError: #LookupError:
         print('A lookup error happened!')
         pass
 
@@ -153,7 +153,7 @@ def tableJoin(request, id):
     for i in table.getPlayerRange():
         if table.isPlayer(i) is False:
             table.setPlayer(i, user)
-            table.setPlayerMoney(i, 50)
+            table.setPlayerMoney(i, 50) # TODO Move money
             table.save()
             return JsonResponse({})
 
@@ -168,15 +168,8 @@ def tableLeave(request, id):
         if table.isPlayer(i) is True:
             if table.getPlayer(i) == user:
                 table.setPlayer(i, None)
-                table.setPlayerMoney(i, 0)
+                table.setPlayerMoney(i, 0) # TODO Move money
                 table.setPlayerCards(i, None)
-
-                # if table.getState() == 1:
-                #     if table.getNextToAct() == i:
-                #         table.setNextToAct(table.getNextPlayerStillInTheGame(table.getNextToAct()))
-                #
-                #     if table.getLastToAct() == i:
-                #         table.setLastToAct(table.getPreviousPlayerStillInTheGame(table.getLastToAct()))
 
                 table.save()
             return JsonResponse({})

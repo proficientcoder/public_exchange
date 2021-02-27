@@ -1,9 +1,20 @@
 import random
+import pytz
+import time
+import datetime
+from django.conf import settings
+from django.utils.timezone import make_aware
+
 from user.models import apiKey
 from django.contrib.auth.models import User
 
+from poker.pokereval.card import Card
+from poker.pokereval.hand_evaluator import HandEvaluator
+
+
 import poker.models as pokerModels
 import user.functions as userFunctions
+import poker.functions as pokerFunctions
 
 
 class PokerTable:
@@ -106,6 +117,14 @@ class PokerTable:
 
     def setPlayer(self, nr, what):
         setattr(self.db, f'player_{nr}', what)
+
+    def setShowDownCounter(self):
+        n = datetime.datetime.utcnow()
+        now = make_aware(n)
+        self.db.showDownCounter = now
+
+    def getShowDownTimer(self):
+        return self.db.showDownCounter
 
     # Helpers
 
@@ -216,21 +235,51 @@ class PokerTable:
 
         # If game is active then update on timers etc.
         if self.getState() == 1:
-            pass
+            # If there is only one player left then they win the pot
+            winner = None
+            if self.getNrOfPlayersWithCards() == 1:
+                winnings = self.getPot()
+                for i in self.getPlayerRange():
+                    if self.getPlayerCards(i):
+                        winner = i
+                    winnings += self.getPlayerBet(i)
+                    self.setPlayerBet(i, 0)
 
+                self.setPlayerMoney(winner, self.getPlayerMoney(winner) + winnings)
 
-    def updateOnAction(self):
-        # If state is zero then game is not active
-        if self.getState() == 0:
-            self.db.save()
+                self.setState(0)
+                self.setPot(0)
+                self.setBoardCards('')
+                self.db.save()
 
-        # If there is only one player left then they win the pot
-        winner = None
-        if self.getNrOfPlayersWithCards() == 1:
+        if self.getState() == 2:
+            release = self.getShowDownTimer() + datetime.timedelta(seconds=5)
+            if make_aware(datetime.datetime.utcnow()) < release:
+                print('Time not expired', datetime.datetime.utcnow(), release)
+                return
+
+            print('Time expired', datetime.datetime.utcnow(), release)
+            winner = None
+            highest = 0
+            for i in self.getPlayerRange():
+                c = self.getPlayerCards(i)
+                b = self.getBoardCards()
+                if c:
+                    hole = [pokerFunctions.cardTranslate(c[0:2]),
+                            pokerFunctions.cardTranslate(c[2:4])]
+                    board = [pokerFunctions.cardTranslate(b[0:2]),
+                             pokerFunctions.cardTranslate(b[2:4]),
+                             pokerFunctions.cardTranslate(b[4:6]),
+                             pokerFunctions.cardTranslate(b[6:8]),
+                             pokerFunctions.cardTranslate(b[8:10])]
+                    score = HandEvaluator.evaluate_hand(hole, board)
+                    if score > highest:
+                        highest = score
+                        winner = i
+            print(winner, score)
+
             winnings = self.getPot()
             for i in self.getPlayerRange():
-                if self.getPlayerCards(i):
-                    winner = i
                 winnings += self.getPlayerBet(i)
                 self.setPlayerBet(i, 0)
 
@@ -238,32 +287,44 @@ class PokerTable:
 
             self.setState(0)
             self.setPot(0)
-        else:
-            # If this player raised we need to update last-to-act
-            if self.didNextToActRaise():
-                print('1')
+            self.setBoardCards('')
+            self.db.save()
+
+
+
+    def updateOnAction(self):
+        # If state is zero then game is not active
+        if self.getState() == 0:
+            return
+
+        # If this player raised we need to update last-to-act
+        if self.didNextToActRaise():
+            self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
+
+        # If player was the last to act then go to next round
+        if self.getNextToAct() == self.getLastToAct():
+            if len(self.getBoardCards()) < 10:
+                bets = 0
+                for i in self.getPlayerRange():
+                    bets += self.getPlayerBet(i)
+                    self.setPlayerBet(i, 0)
+                bets += self.getPot()
+                self.setPot(bets)
+
+                newCard = self.drawCardFromDeck()
+
+                self.setBoardCards(self.getBoardCards() + newCard)
+
+                self.setNextToAct(self.getNextPlayerStillInTheGame(self.getDealer()))
                 self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
+            else:
+                # Showdown
+                self.setState(2)
+                self.setShowDownCounter()
+                self.save()
 
-            # If player was the last to act then go to next round
-            if self.getNextToAct() == self.getLastToAct():
-                print('2')
-                if len(self.getBoardCards()) < 10:
-                    bets = 0
-                    for i in self.getPlayerRange():
-                        bets += self.getPlayerBet(i)
-                        self.setPlayerBet(i, 0)
-                    bets += self.getPot()
-                    self.setPot(bets)
-
-                    newCard = self.drawCardFromDeck()
-
-                    self.setBoardCards(self.getBoardCards() + newCard)
-
-                    self.setNextToAct(self.getNextPlayerStillInTheGame(self.getDealer()))
-                    self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
-
-            else:   # Or go to the next player
-                print('3')
-                self.setNextToAct(self.getNextPlayerStillInTheGame(self.getNextToAct()))
+        else:   # Or go to the next player
+            print('3')
+            self.setNextToAct(self.getNextPlayerStillInTheGame(self.getNextToAct()))
 
         self.db.save()
