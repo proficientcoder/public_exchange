@@ -1,0 +1,23 @@
+deploy on digital ocean
+table creation bot
+fold/check bot
+fold/check/call bot
+fold/check/call/bet bot
+better lobby
+add lobby button to table
+terminate poker app when all threads exited
+prevent chip pocketing
+have new player await big blind
+new post on progress
+create poker demo video
+update promotional post
+manage emails
+email recover
+manage keys keys
+start on api documentation
+add table currency and multiplier
+join/leave table (move money from to/account
+add more players to table
+more contracts (coins or fiat)
+add trading
+arbitrage bot
