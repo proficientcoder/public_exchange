@@ -1,4 +1,5 @@
 deploy on digital ocean
+create a database link
 table creation bot
 fold/check bot
 fold/check/call bot
