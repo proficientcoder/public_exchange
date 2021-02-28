@@ -17,7 +17,9 @@ manage keys keys
 start on api documentation
 add table currency and multiplier
 join/leave table (move money from to/account
+handle all-in's/autoplay
 add more players to table
+handle side pots
 more contracts (coins or fiat)
 add trading
 arbitrage bot
