@@ -34,24 +34,25 @@ def pokerTableState(request, id):
                                      'last_bet': table.getPlayerBet(i),
                                      'cards': '',
                                      })
-            if table.getPlayer(i) == user or table.getState == 2:
+            if table.getPlayer(i) == user or table.getState() == 2:
                 state['players'][-1]['cards'] = table.getPlayerCards(i)
         else:
             state['players'].append(None)
 
-    actor_bet = table.getPlayerBet(table.getNextToAct())
+        if i == table.getNextToAct() and table.getPlayer(i) == user and table.getState() > 0:
+            actor_bet = table.getPlayerBet(table.getNextToAct())
 
-    if max_bet == actor_bet:
-        state['actions'].append('CHECK')
+            if max_bet == actor_bet:
+                state['actions'].append('CHECK')
 
-    if max_bet > actor_bet:
-        state['actions'].append('FOLD')
-        state['actions'].append('CALL')
+            if max_bet > actor_bet:
+                state['actions'].append('FOLD')
+                state['actions'].append('CALL')
 
-    if max_bet == 0:
-        state['actions'].append('BET')
+            if max_bet == 0:
+                state['actions'].append('BET')
 
-    state['actions'].append('RAISE')
+            state['actions'].append('RAISE')
 
     return JsonResponse(state)
 
@@ -146,6 +147,13 @@ def tableCreate(request):
     return JsonResponse({})
 
 
+def tableDelete(request, id):
+    tmp = pokerModels.PokerTable.objects.filter(id=id)
+    tmp.delete()
+
+    return JsonResponse({})
+
+
 def tableJoin(request, id):
     user = userFunctions.getUserFromKey(request)
 
@@ -172,7 +180,6 @@ def tableLeave(request, id):
                 table.setPlayerCards(i, None)
 
                 table.save()
-            return JsonResponse({})
 
     return JsonResponse({})
 
@@ -194,8 +201,13 @@ def listTables(request):
 
     pokerTables = pokerModels.PokerTable.objects.all()
     for table in pokerTables:
+        count = 0
+        for i in range(1, table.size+1):
+            if getattr(table, f'player_{i}') is not None:
+                count += 1
         tables.append({'id': table.pk,
-                       'size': table.size})
+                       'size': table.size,
+                       'seated': count})
 
     return JsonResponse({'tables': tables})
 

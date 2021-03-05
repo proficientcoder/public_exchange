@@ -10,4 +10,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='userLogout'),
 
     path('createKey/', userViews.createKey, name='userCreateKey'),
+    path('testKey/', userViews.testKey, name='userTestKey'),
 ]

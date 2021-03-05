@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect
 from user.models import apiKey
 from django.contrib.auth.decorators import login_required
 
+import user.functions as userFunctions
+
 
 def register(request):
     if request.method == 'POST':
@@ -28,3 +30,12 @@ def createKey(request):
     key.save()
 
     return JsonResponse({})
+
+
+def testKey(request):
+    try:
+        user = userFunctions.getUserFromKey(request)
+    except LookupError:
+        return JsonResponse({'ERR': 'LookupError'})
+
+    return JsonResponse({'username': user.username})

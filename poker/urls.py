@@ -8,6 +8,7 @@ urlpatterns = [
     path('tableState/<int:id>/', pokerViews.pokerTableState, name='pokerTableState'),
     path('tableCreate/', pokerViews.tableCreate, name='pokerTableCreate'),
     path('tableJoin/<int:id>/', pokerViews.tableJoin, name='pokerTableJoin'),
+    path('tableDelete/<int:id>/', pokerViews.tableDelete, name='pokerTableDelete'),
     path('tableLeave/<int:id>/', pokerViews.tableLeave, name='pokerTableLeave'),
 
     path('actionFold/<int:id>/', pokerViews.actionFold, name='pokerActionFold'),

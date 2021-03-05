@@ -1,23 +1,31 @@
-deploy on digital ocean
-create a database link
-table creation bot
+> deploy on digital ocean
+> create a database link
+> connect domain to digitalocean
+> table management bot
+> add debug host to poker client
+work with locks on db
 fold/check bot
 fold/check/call bot
 fold/check/call/bet bot
 better lobby
+publish on github
+add info on github
+> have client dist update from github
+publish poker client
 add lobby button to table
 terminate poker app when all threads exited
 prevent chip pocketing
 have new player await big blind
 new post on progress
 create poker demo video
+encrypt api keys
 update promotional post
 manage emails
 email recover
-manage keys keys
+manage keys
 start on api documentation
 add table currency and multiplier
-join/leave table (move money from to/account
+join/leave table (move money from to/account)
 handle all-in's/autoplay
 add more players to table
 handle side pots
