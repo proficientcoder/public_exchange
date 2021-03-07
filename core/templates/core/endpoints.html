@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - public-exchange.com{% endblock %}
+
+{% block content %}
+  <h3>Endpoints</h3>
+  {% if endpoints %}
+    There are {{ endpoints|length }} records:
+    <table>
+      <tr><th>Url</th><th>Type</th><th>Description</th><th>Documentation</th></tr>
+      {% for e in endpoints %}
+      <tr>
+        <td>{{ e.url }}</td><td>{{ e.type }}</td><td>{{ e.description }}</td><td><a href="{{ e.link }}">{{ e.link }}</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    There are no records in the system
+  {% endif %}
+{% endblock %}

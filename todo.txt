@@ -3,14 +3,20 @@
 > connect domain to digitalocean
 > table management bot
 > add debug host to poker client
-work with locks on db
-fold/check bot
-fold/check/call bot
-fold/check/call/bet bot
+> fold/check bot
+> fold/check/call bot
+> fold/check/call/bet bot
+> have client dist update from github
+> manage keys
+user page
+action timeout
+give bot a table distribution
+also return totalpot in tablestate
+rotate seats on table
 better lobby
+work with locks on db
 publish on github
 add info on github
-> have client dist update from github
 publish poker client
 add lobby button to table
 terminate poker app when all threads exited
@@ -19,10 +25,10 @@ have new player await big blind
 new post on progress
 create poker demo video
 encrypt api keys
+key bind to ip
 update promotional post
 manage emails
 email recover
-manage keys
 start on api documentation
 add table currency and multiplier
 join/leave table (move money from to/account)

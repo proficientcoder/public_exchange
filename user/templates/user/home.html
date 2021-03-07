@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - public-exchange.com{% endblock %}
+
+{% block content %}
+  <h2>Account</h2>
+  Account details
+
+  <h3>API keys</h3>
+  {% if keys %}
+    <p><a href="{% url 'userCreateKey' %}">Create key</a></p>
+    There are {{ keys|length }} records:
+    <table>
+      <tr><th>Key</th><th>Binding</th><th>Action</th></tr>
+      {% for k in keys %}
+      <tr>
+        <td>{{ k.key }}</td><td>0.0.0.0</td><td><a href="{% url 'userDeleteKey' k.id %}">Delete</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    There are no records in the system
+  {% endif %}
+{% endblock %}

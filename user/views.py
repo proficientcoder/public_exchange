@@ -25,11 +25,27 @@ def register(request):
 
 
 @login_required()
+def home(request):
+    keys = apiKey.objects.all().filter(user=request.user)
+    return render(request, 'user/home.html', {'keys': keys})
+
+
+@login_required()
 def createKey(request):
     key = apiKey(user=request.user, key=str(uuid.uuid4()))
     key.save()
 
-    return JsonResponse({})
+    return redirect('userHome')
+
+
+@login_required()
+def deleteKey(request, id):
+    keys = apiKey.objects.all().filter(user=request.user, id=id)
+    if len(keys) == 1:
+        k = keys[0]
+        k.delete()
+
+    return redirect('userHome')
 
 
 def testKey(request):

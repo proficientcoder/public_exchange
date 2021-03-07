@@ -23,4 +23,5 @@ urlpatterns = [
     path('user/', include('user.urls')),
     path('exchange/', include('exchange.urls')),
     path('poker/', include('poker.urls')),
+    path('endpoints/', coreViews.endpoints, name='endpoints')
 ]

@@ -28,6 +28,8 @@ def pokerTableState(request, id):
     max_bet = 0
     for i in table.getPlayerRange():
         max_bet = max(max_bet, table.getPlayerBet(i))
+
+    for i in table.getPlayerRange():
         if table.isPlayer(i):
             state['players'].append({'name': table.getPlayer(i).username,
                                      'balance': table.getPlayerMoney(i),
