@@ -7,56 +7,15 @@ import user.functions as userFunctions
 
 
 def pokerTableState(request, id):
-    user = userFunctions.getUserFromKey(request)
     table = pokerClasses.PokerTable(request, id)
 
-    table.updateWithoutAction()
+    table.user = userFunctions.getUserFromKey(request)
 
-    state = {
-        'you': user.username,
-        'nrOfSeats': table.getSize(),
-        'dealer': table.getDealer(),
-        'blind': table.getBlind(),
-        'next_to_act': table.getNextToAct(),
-        'last_to_act': table.getLastToAct(),
-        'players': [None],  # Add single element for client offset
-        'board': table.getBoardCards(),
-        'pot': table.getPot(),
-        'actions': [],
-    }
+    table.updateTableState()
 
-    max_bet = 0
-    for i in table.getPlayerRange():
-        max_bet = max(max_bet, table.getPlayerBet(i))
-
-    for i in table.getPlayerRange():
-        if table.isPlayer(i):
-            state['players'].append({'name': table.getPlayer(i).username,
-                                     'balance': table.getPlayerMoney(i),
-                                     'last_bet': table.getPlayerBet(i),
-                                     'cards': '',
-                                     })
-            if table.getPlayer(i) == user or table.getState() == 2:
-                state['players'][-1]['cards'] = table.getPlayerCards(i)
-        else:
-            state['players'].append(None)
-
-        if i == table.getNextToAct() and table.getPlayer(i) == user and table.getState() > 0:
-            actor_bet = table.getPlayerBet(table.getNextToAct())
-
-            if max_bet == actor_bet:
-                state['actions'].append('CHECK')
-
-            if max_bet > actor_bet:
-                state['actions'].append('FOLD')
-                state['actions'].append('CALL')
-
-            if max_bet == 0:
-                state['actions'].append('BET')
-
-            state['actions'].append('RAISE')
-
+    state = table.getPokerTableState()
     return JsonResponse(state)
+
 
 
 def actionFold(request, id):
@@ -87,7 +46,7 @@ def actionCheck(request, id):
     return JsonResponse({})
 
 
-def actionCall(request, id):
+def actionCall(request, id, amount):
     table = pokerClasses.PokerTable(request, id)
 
     try:
@@ -112,7 +71,7 @@ def actionCall(request, id):
     return JsonResponse({})
 
 
-def actionRaise(request, id):
+def actionRaise(request, id, amount):
     table = pokerClasses.PokerTable(request, id)
 
     try:

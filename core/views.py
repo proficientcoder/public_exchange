@@ -37,4 +37,6 @@ def endpoints(request):
     return render(request, 'core/endpoints.html', {'endpoints': all_endpoints})
 
 
-index = {'/endpoints/': {'type': 'html', 'description': 'Returns a list of all the endpoints', 'link': 'https://google.com'}}
+index = {'/endpoints/': {'type': 'html', 'description': 'Returns a list of all the endpoints', 'link': 'https://proficientcoder.com/endpoint-endpoints/'},
+         '/poker/listTables/': {'type': 'json', 'description': 'Returns a list of all poker tables', 'link': 'https://proficientcoder.com/endpoint-poker-listtables/'},
+         }
