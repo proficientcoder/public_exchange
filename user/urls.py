@@ -12,4 +12,5 @@ urlpatterns = [
 
     path('createKey/', userViews.createKey, name='userCreateKey'),
     path('deleteKey/<int:id>/', userViews.deleteKey, name='userDeleteKey'),
+    path('testKey/', userViews.testKey, name='userTestKey')
 ]

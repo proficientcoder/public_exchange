@@ -23,9 +23,12 @@ def actionFold(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            table.setPlayerCards(table.getNextToAct(),
-                                 None)
-            table.updateOnAction()
+            index = table.getNextToAct()
+            table.lockForUpdate()
+            table.setPlayerAction(index, True)
+            table.setPlayerCards(index, None)
+            table.save()
+
     except LookupError:
         print('A lookup error happened!')
         pass
@@ -38,32 +41,49 @@ def actionCheck(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            table.updateOnAction()
-    except RecursionError: #LookupError:
+            table.lockForUpdate()
+            maxbet = 0
+
+            for i in table.getPlayerRange():
+                maxbet = max(maxbet, table.getPlayerNewBet(i))
+
+            index = table.getNextToAct()
+
+            if maxbet != table.getPlayerNewBet(index):
+                return JsonResponse({})
+
+            table.setPlayerAction(index, True)
+            table.save()
+    except LookupError:
         print('A lookup error happened!')
         pass
 
     return JsonResponse({})
 
 
-def actionCall(request, id, amount):
+def actionCall(request, id):
     table = pokerClasses.PokerTable(request, id)
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            highestBet = 0
+            table.lockForUpdate()
+            maxbet = 0
+
             for i in table.getPlayerRange():
-                money = table.getPlayerBet(i)
-                if money > highestBet:
-                    highestBet = money
+                maxbet = max(maxbet, table.getPlayerNewBet(i))
 
             # Move the money
             i = table.getNextToAct()
-            difference = highestBet - table.getPlayerBet(i)
-            table.setPlayerBet(i, highestBet)
+            difference = maxbet - table.getPlayerNewBet(i)
+
+            if difference > table.getPlayerMoney(i) or difference == 0:
+                return JsonResponse({})
+
+            table.setPlayerAction(i, True)
+            table.setPlayerNewBet(i, maxbet)
             table.setPlayerMoney(i, table.getPlayerMoney(i) - difference)
 
-            table.updateOnAction()
+            table.save()
     except LookupError:
         print('A lookup error happened!')
         pass
@@ -76,25 +96,28 @@ def actionRaise(request, id, amount):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            # Bet
-            if 'bet' not in request.GET:
-                raise LookupError  # Key is not specified
+            table.lockForUpdate()
+            maxbet = 0
 
-            highestBet = 0
             for i in table.getPlayerRange():
-                money = table.getPlayerBet(i)
-                if money > highestBet:
-                    highestBet = money
-
-            highestBet += float(request.GET['bet'])
+                maxbet = max(maxbet, table.getPlayerNewBet(i))
 
             # Move the money
             i = table.getNextToAct()
-            difference = highestBet - table.getPlayerBet(i)
-            table.setPlayerBet(i, highestBet)
-            table.setPlayerMoney(i, table.getPlayerMoney(i) - difference)
+            newBet = table.getPlayerNewBet(i) + amount
+            print(newBet, amount)
 
-            table.updateOnAction()
+            if amount != table.getPlayerMoney(i):   # All-in has no limits
+                if amount > table.getPlayerMoney(i) or newBet < maxbet + (table.getBlind() / 2):
+                    return JsonResponse({})
+
+            print('raise')
+            table.setPlayerAction(i, True)
+            table.setPlayerMoney(i, table.getPlayerMoney(i) - amount)
+            table.setPlayerNewBet(i, table.getPlayerNewBet(i) + amount)
+            table.setLastToAct(table.findPrevPlayerToAct(table.getNextToAct()))
+
+            table.save()
     except LookupError:
         print('A lookup error happened!')
         pass
@@ -109,6 +132,7 @@ def tableCreate(request):
 
 
 def tableDelete(request, id):
+    # TODO check if table is empty
     tmp = pokerModels.PokerTable.objects.filter(id=id)
     tmp.delete()
 
@@ -122,7 +146,7 @@ def tableJoin(request, id):
     for i in table.getPlayerRange():
         if table.isPlayer(i) is False:
             table.setPlayer(i, user)
-            table.setPlayerMoney(i, 50) # TODO Move money
+            table.setPlayerMoney(i, 50)     # TODO Move money
             table.save()
             return JsonResponse({})
 

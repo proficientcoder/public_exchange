@@ -12,7 +12,7 @@ urlpatterns = [
     path('tableLeave/<int:id>/', pokerViews.tableLeave, name='pokerTableLeave'),
 
     path('actionFold/<int:id>/', pokerViews.actionFold, name='pokerActionFold'),
-    path('actionCall/<int:id>/<int:amount>/', pokerViews.actionCall, name='pokerActionCall'),
+    path('actionCall/<int:id>/', pokerViews.actionCall, name='pokerActionCall'),
     path('actionRaise/<int:id>/<int:amount>/', pokerViews.actionRaise, name='pokerActionRaise'),
     path('actionCheck/<int:id>/', pokerViews.actionCheck, name='pokerActionCheck'),
 
