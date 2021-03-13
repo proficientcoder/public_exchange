@@ -23,7 +23,7 @@ class TableStates:
     SETUP_BUTTON = 12000
     SETUP_SMALL_BLIND = 13000
     SETUP_BIG_BLIND = 14000
-    ROUNDS = 20000
+    ROUNDS_PREBETTING = 20000
     ROUNDS_DEAL = 21000
     ROUNDS_BETTING = 22000
     ROUNDS_LAST_MAN_STANDING = 23000
@@ -70,19 +70,19 @@ class PokerTable:
         setattr(self.db, f'player_{nr}_new_bet', what)
 
     def getPlayerNewBet(self, nr):
-        return float(getattr(self.db, f'player_{nr}_new_bet'))
+        return int(getattr(self.db, f'player_{nr}_new_bet'))
 
     def setPlayerPrevBet(self, nr, what):
         setattr(self.db, f'player_{nr}_prev_bet', what)
 
     def getPlayerPrevBet(self, nr):
-        return float(getattr(self.db, f'player_{nr}_prev_bet'))
+        return int(getattr(self.db, f'player_{nr}_prev_bet'))
 
     def setPlayerMoney(self, nr, what):
         setattr(self.db, f'player_{nr}_money', what)
 
     def getPlayerMoney(self, nr):
-        return float(getattr(self.db, f'player_{nr}_money'))
+        return int(getattr(self.db, f'player_{nr}_money'))
 
     def getNextToAct(self):
         return self.db.next_to_act
@@ -113,7 +113,7 @@ class PokerTable:
         self.db.board = what
 
     def getPot(self):
-        return float(self.db.pot)
+        return int(self.db.pot)
 
     def drawCardFromDeck(self):
         card = self.db.deck[0:2]
@@ -133,7 +133,7 @@ class PokerTable:
         self.db.state = what
 
     def getBlind(self):
-        return float(self.db.blind)
+        return int(self.db.blind)
 
     def getPlayer(self, nr):
         return getattr(self.db, f'player_{nr}')
@@ -252,6 +252,24 @@ class PokerTable:
             self.setPlayerPrevBet(i, self.getPlayerPrevBet(i) + self.getPlayerNewBet(i))
             self.setPlayerNewBet(i, 0)
 
+    def addLog(self, txt):
+        log = self.db.log
+        if not log:
+            log = ''
+
+        log = log.split('|')
+        log.append(txt)
+        while len(log) > 25:
+            log.pop(0)
+        self.db.log = '|'.join(log)
+
+    def getLog(self):
+        log = self.db.log
+        if not log:
+            return []
+
+        log = log.split('|')
+        return log
 
     # The big stuff
 
@@ -265,10 +283,17 @@ class PokerTable:
             'players': [],
             'board': self.getBoardCards(),
             'actions': [],
+            'log': self.getLog(),
         }
 
         if self.user != None:
             state['you'] = self.user.username
+
+        if self.db.eventTimer:
+            n = datetime.datetime.utcnow()
+            now = make_aware(n)
+            time_left = (self.db.eventTimer - now).total_seconds()
+            state['timer'] = time_left
 
         max_bet = 0
         for i in self.getPlayerRange():
@@ -281,11 +306,12 @@ class PokerTable:
                                          'balance': self.getPlayerMoney(i),
                                          'new_bet': self.getPlayerNewBet(i),
                                          'prev_bet': self.getPlayerPrevBet(i),
-                                         'cards': '',
+                                         'cards': self.getPlayerCards(i),
                                          })
                 if self.user != None:
-                    if self.getPlayer(i) == self.user or self.getState() == TableStates.SHOWDOWN:
-                        state['players'][-1]['cards'] = self.getPlayerCards(i)
+                    if self.getPlayer(i) != self.user and self.getState() != TableStates.SHOWDOWN:
+                        if state['players'][-1]['cards']:
+                            state['players'][-1]['cards'] = ''
 
                     if i == self.getNextToAct() and self.getPlayer(i) == self.user and self.getState() == TableStates.ROUNDS_BETTING:
                         actor_bet = self.getPlayerNewBet(self.getNextToAct())
@@ -299,8 +325,8 @@ class PokerTable:
 
                         if max_bet == 0:
                             state['actions'].append('BET')
-
-                        state['actions'].append('RAISE')
+                        else:
+                            state['actions'].append('RAISE')
 
             else:
                 state['players'].append(None)
@@ -309,10 +335,6 @@ class PokerTable:
 
 
     def stateReset(self):
-        n = datetime.datetime.utcnow()
-        now = make_aware(n)
-
-        self.db.size = 2
         self.db.state = -1
         self.db.dealer = 0
         self.db.next_to_act = 0
@@ -320,7 +342,7 @@ class PokerTable:
         self.db.blind = 10
         self.db.deck = None
         self.db.board = None
-        self.db.eventTimer = now
+        self.db.eventTimer = None
         self.db.updateTimer = None
         self.db.player_0_cards = None
         self.db.player_0_new_bet = 0
@@ -370,14 +392,20 @@ class PokerTable:
 
     def stateSetupDeal(self):
         # Deal cards
+        self.addLog('')
+        self.addLog('Starting new round')
         for i in self.getPlayerRange():
             if self.isPlayerReadyToEnter(i):
+                u = self.getPlayerName(i) + ' has ' + str(self.getPlayerMoney(i))
+                self.addLog(u)
                 card1 = self.drawCardFromDeck()
                 card2 = self.drawCardFromDeck()
                 self.setPlayerCards(i, card1 + card2)
 
-        self.setNextToAct(self.findNextPlayerToAct(self.getDealer()))
+        u = self.getPlayerName(self.getDealer()) + ' has the button'
+        self.addLog(u)
 
+        self.setNextToAct(self.findNextPlayerToAct(self.getDealer()))
         self.setState(TableStates.SETUP_SMALL_BLIND)
 
         return True
@@ -389,6 +417,9 @@ class PokerTable:
         self.setPlayerMoney(sb_pos, self.getPlayerMoney(sb_pos) - amount)
         self.setNextToAct(self.findNextPlayerToAct(self.getNextToAct()))
         self.setState(TableStates.SETUP_BIG_BLIND)
+
+        u = self.getPlayerName(sb_pos) + ' posts the small blind of ' + str(amount)
+        self.addLog(u)
 
         return True
 
@@ -402,20 +433,13 @@ class PokerTable:
 
         self.setState(TableStates.ROUNDS_BETTING)   # Go straight into the betting part
 
+        u = self.getPlayerName(bb_pos) + ' posts the big blind of ' + str(amount)
+        self.addLog(u)
+
         return False
 
-    def stateRoundsBetting(self):
-        howManyInGame = 0
-        for i in self.getPlayerRange():
-            if self.isPlayerInGame(i):
-                howManyInGame += 1
 
-        if howManyInGame < 2:
-            self.concatBets()
-            self.setState(TableStates.ROUNDS_LAST_MAN_STANDING)
-            print('lastman')
-            return True
-
+    def stateRoundsPreBetting(self):
         howManyCanAct = 0
         for i in self.getPlayerRange():
             if self.isPlayerAbleToAct(i):
@@ -425,12 +449,29 @@ class PokerTable:
             if self.getBoardCards():
                 if len(self.getBoardCards()) == 10:
                     self.concatBets()
+                    self.db.eventTimer = None
                     self.setState(TableStates.SHOWDOWN)
-                    print('showdown')
                     return True
 
             self.concatBets()
             self.setState(TableStates.ROUNDS_DEAL)
+            return True
+
+        self.setState(TableStates.ROUNDS_BETTING)
+        return True
+
+
+    def stateRoundsBetting(self):
+        # Last man standing
+        howManyInGame = 0
+        for i in self.getPlayerRange():
+            if self.isPlayerInGame(i):
+                howManyInGame += 1
+
+        if howManyInGame < 2:
+            self.concatBets()
+            self.db.eventTimer = None
+            self.setState(TableStates.ROUNDS_LAST_MAN_STANDING)
             return True
 
         # Did player act
@@ -443,6 +484,7 @@ class PokerTable:
                 if self.getBoardCards():
                     if len(self.getBoardCards()) == 10:
                         self.concatBets()
+                        self.db.eventTimer = None
                         self.setState(TableStates.SHOWDOWN)
                         return True
 
@@ -454,35 +496,65 @@ class PokerTable:
             self.setNextToAct(self.findNextPlayerToAct(self.getNextToAct()))
 
         # Did time run out
-        return False        # TODO disable the timeout for now
         n = datetime.datetime.utcnow()
         now = make_aware(n)
         if self.db.eventTimer is None:
-            self.db.eventTimer = now
+            self.db.eventTimer = now + datetime.timedelta(seconds=30)
 
-        if now < self.db.eventTimer + datetime.timedelta(seconds=15):
+        if now < self.db.eventTimer:
             return False
 
-        self.setPlayer(self.getNextToAct(), None)   # TODO refund money
+        log = self.getPlayerName(self.getNextToAct()) + ' timed out'
+        self.addLog(log)
+
+        log = self.getPlayerName(self.getNextToAct()) + ' folded'
+        self.addLog(log)
+
+        self.setPlayerCards(self.getNextToAct(), None)
+        self.db.eventTimer = None
         self.setNextToAct(self.findNextPlayerToAct(self.getNextToAct()))
-        self.db.eventTimer = now
-        return False
+
+        return True
 
     def stateRoundsDeal(self):
         bc = self.getBoardCards()
 
+        amount = 1
         if not bc:
             bc = ''
+            amount = 3
 
-        bc += self.drawCardFromDeck()
-        self.setBoardCards(bc)
+        log = ''
+        if len(bc) == 0:
+            log = 'Flop '
+        if len(bc) == 6:
+            log = 'Turn '
+        if len(bc) == 8:
+            log = 'River '
+
+        for i in range(0, amount):
+            card = self.drawCardFromDeck()
+            bc += card
+            log += card + ' '
+            self.setBoardCards(bc)
+
+        self.addLog(log)
 
         self.setNextToAct(self.findNextPlayerToAct(self.getDealer()))
         self.setLastToAct(self.findPrevPlayerToAct(self.getNextToAct()))
-        self.setState(TableStates.ROUNDS_BETTING)
+        self.setState(TableStates.ROUNDS_PREBETTING)
         return True
 
     def stateShowdown(self):
+        n = datetime.datetime.utcnow()
+        now = make_aware(n)
+
+        if self.db.eventTimer is None:
+            self.db.eventTimer = now + datetime.timedelta(seconds=3)
+            return False
+
+        if now < self.db.eventTimer:
+            return False
 
         scores = []
         bets = []
@@ -490,6 +562,9 @@ class PokerTable:
         for i in self.getPlayerRange():
             winnings.append(0)
             if self.getPlayerCards(i):
+                log = self.getPlayerName(i) + ' shows ' + self.getPlayerCards(i)
+                self.addLog(log)
+
                 c = self.getPlayerCards(i)
                 b = self.getBoardCards()
                 if c:
@@ -508,7 +583,7 @@ class PokerTable:
                 bets.append(0)
 
         while sum(scores) > 0:
-            best = max(scores)
+            best = min([i for i in scores if i != 0])
             count = scores.count(best)
             winner = scores.index(best)
 
@@ -522,11 +597,25 @@ class PokerTable:
 
         for i in self.getPlayerRange():
             self.setPlayerMoney(i, self.getPlayerMoney(i) + winnings[i])
+            if winnings[i] != 0:
+                log = self.getPlayerName(i) + ' won ' + str(winnings[i])
+                self.addLog(log)
 
+        self.db.eventTimer = None
         self.setState(TableStates.RESET)
         return True
 
     def stateRoundsLastManStanding(self):
+        n = datetime.datetime.utcnow()
+        now = make_aware(n)
+
+        if self.db.eventTimer is None:
+            self.db.eventTimer = now + datetime.timedelta(seconds=3)
+            return False
+
+        if now < self.db.eventTimer:
+            return False
+
         winner = None
         winnings = 0
         for i in self.getPlayerRange():
@@ -535,6 +624,10 @@ class PokerTable:
         winnings += self.getPlayerPrevBet(winner)
         self.setPlayerMoney(winner, self.getPlayerMoney(winner) + winnings)
 
+        log = self.getPlayerName(winner) + ' won ' + str(winnings)
+        self.addLog(log)
+
+        self.db.eventTimer = None
         self.setState(TableStates.RESET)
         return True
 
@@ -543,7 +636,12 @@ class PokerTable:
         n = datetime.datetime.utcnow()
         now = make_aware(n)
 
-        if now < self.db.updateTimer + datetime.timedelta(milliseconds=333):
+        if self.db.updateTimer == None:    # Brand new table
+            self.lockForUpdate()
+            self.db.updateTimer = now
+            self.save()
+
+        if now < self.db.updateTimer:
             return
 
         self.lockForUpdate()
@@ -571,9 +669,9 @@ class PokerTable:
             if self.db.state == TableStates.SETUP_BIG_BLIND:
                 r = self.stateSetupBigBlind()
                 continue
-            # if self.db.state == TableStates.ROUNDS:
-            #     r = self.stateRounds()
-            #     continue
+            if self.db.state == TableStates.ROUNDS_PREBETTING:
+                r = self.stateRoundsPreBetting()
+                continue
             if self.db.state == TableStates.ROUNDS_DEAL:
                 r = self.stateRoundsDeal()
                 continue
@@ -589,138 +687,6 @@ class PokerTable:
 
             r = False   # No hit? then exit the loop
 
-        self.db.updateTimer = now
+        self.db.updateTimer = now + datetime.timedelta(milliseconds=333)
         self.save()
 
-
-    # def updateWithoutAction(self):
-    #     # If game is not active then try to start it
-    #     if self.getState() == 0:
-    #         nrActive = 0
-    #         for i in self.getPlayerRange():
-    #             if self.isPlayerReadyToEnter(i):
-    #                 nrActive += 1
-    #
-    #         if nrActive >= 2:
-    #             self.setState(1)
-    #             self.setBoardCards('')
-    #             self.setPot(0)
-    #             self.setDealer(self.nextPlayerReadyToEnter(self.getDealer()))
-    #             self.createDeck()
-    #
-    #             # Deal cards
-    #             for i in self.getPlayerRange():
-    #                 if self.isPlayerReadyToEnter(i):
-    #                     card1 = self.drawCardFromDeck()
-    #                     card2 = self.drawCardFromDeck()
-    #                     self.setPlayerCards(i, card1+card2)
-    #                     self.setPlayerBet(i, 0)
-    #
-    #             sb_pos = self.nextPlayerReadyToEnter(self.getDealer())
-    #             self.setPlayerBet(sb_pos, self.getBlind()/2)
-    #             self.setPlayerMoney(sb_pos, self.getPlayerMoney(sb_pos)-self.getPlayerBet(sb_pos))
-    #
-    #             bb_pos = self.nextPlayerReadyToEnter(sb_pos)
-    #             self.setPlayerBet(bb_pos, self.getBlind())
-    #             self.setPlayerMoney(bb_pos, self.getPlayerMoney(bb_pos)-self.getPlayerBet(bb_pos))
-    #
-    #             self.setNextToAct(self.getNextPlayerStillInTheGame(bb_pos))
-    #             self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
-    #
-    #             self.db.save()
-    #
-    #     # If game is active then update on timers etc.
-    #     if self.getState() == 1:
-    #         # If there is only one player left then they win the pot
-    #         winner = None
-    #         if self.getNrOfPlayersWithCards() == 1:
-    #             winnings = self.getPot()
-    #             for i in self.getPlayerRange():
-    #                 if self.getPlayerCards(i):
-    #                     winner = i
-    #                 winnings += self.getPlayerBet(i)
-    #                 self.setPlayerBet(i, 0)
-    #
-    #             self.setPlayerMoney(winner, self.getPlayerMoney(winner) + winnings)
-    #
-    #             self.setState(0)
-    #             self.setPot(0)
-    #             self.setBoardCards('')
-    #             self.db.save()
-    #
-    #     if self.getState() == 2:
-    #         release = self.getShowDownTimer() + datetime.timedelta(seconds=5)
-    #         if make_aware(datetime.datetime.utcnow()) < release:
-    #             print('Time not expired', datetime.datetime.utcnow(), release)
-    #             return
-    #
-    #         print('Time expired', datetime.datetime.utcnow(), release)
-    #         winner = None
-    #         highest = 0
-    #         for i in self.getPlayerRange():
-    #             c = self.getPlayerCards(i)
-    #             b = self.getBoardCards()
-    #             if c:
-    #                 hole = [pokerFunctions.cardTranslate(c[0:2]),
-    #                         pokerFunctions.cardTranslate(c[2:4])]
-    #                 board = [pokerFunctions.cardTranslate(b[0:2]),
-    #                          pokerFunctions.cardTranslate(b[2:4]),
-    #                          pokerFunctions.cardTranslate(b[4:6]),
-    #                          pokerFunctions.cardTranslate(b[6:8]),
-    #                          pokerFunctions.cardTranslate(b[8:10])]
-    #                 score = HandEvaluator.evaluate_hand(hole, board)
-    #                 if score > highest:
-    #                     highest = score
-    #                     winner = i
-    #         print(winner, score)
-    #
-    #         winnings = self.getPot()
-    #         for i in self.getPlayerRange():
-    #             winnings += self.getPlayerBet(i)
-    #             self.setPlayerBet(i, 0)
-    #
-    #         self.setPlayerMoney(winner, self.getPlayerMoney(winner) + winnings)
-    #
-    #         self.setState(0)
-    #         self.setPot(0)
-    #         self.setBoardCards('')
-    #         self.db.save()
-    #
-    #
-    #
-    # def updateOnAction(self):
-    #     # If state is zero then game is not active
-    #     if self.getState() == 0:
-    #         return
-    #
-    #     # If this player raised we need to update last-to-act
-    #     if self.didNextToActRaise():
-    #         self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
-    #
-    #     # If player was the last to act then go to next round
-    #     if self.getNextToAct() == self.getLastToAct():
-    #         if len(self.getBoardCards()) < 10:
-    #             bets = 0
-    #             for i in self.getPlayerRange():
-    #                 bets += self.getPlayerBet(i)
-    #                 self.setPlayerBet(i, 0)
-    #             bets += self.getPot()
-    #             self.setPot(bets)
-    #
-    #             newCard = self.drawCardFromDeck()
-    #
-    #             self.setBoardCards(self.getBoardCards() + newCard)
-    #
-    #             self.setNextToAct(self.getNextPlayerStillInTheGame(self.getDealer()))
-    #             self.setLastToAct(self.getPreviousPlayerStillInTheGame(self.getNextToAct()))
-    #         else:
-    #             # Showdown
-    #             self.setState(2)
-    #             self.setShowDownCounter()
-    #             self.save()
-    #
-    #     else:   # Or go to the next player
-    #         print('3')
-    #         self.setNextToAct(self.getNextPlayerStillInTheGame(self.getNextToAct()))
-    #
-    #     self.db.save()

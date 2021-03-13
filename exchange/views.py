@@ -1,4 +1,4 @@
-import global_settings
+#import global_settings
 from django.contrib.auth import login, authenticate
 from exchange.forms import TickerCreationForm, DepositFiatForm
 from exchange.models import Ticker, Ownership
@@ -17,7 +17,7 @@ def createTicker(request):
         if form.is_valid():
             inst = form.save(commit=False)
             inst.creator = request.user
-            inst.name = global_settings.exchange_id + ':' + inst.name
+            #inst.name = global_settings.exchange_id + ':' + inst.name
             inst.save()
             return render(request, 'exchange/createTicker_success.html')
     else:
@@ -30,7 +30,7 @@ def depositFiat(request):
     if request.method == 'POST':
         form = DepositFiatForm(request.POST)
         if form.is_valid():
-            fiats = Ticker.objects.filter(name='X1:FIAT')
+            fiats = Ticker.objects.filter(name='FIAT')
             own = Ownership.objects.filter(ticker=fiats[0])
             if len(own) > 0:
                 own = own[0]

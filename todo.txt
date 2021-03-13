@@ -8,13 +8,22 @@
 > fold/check/call/bet bot
 > have client dist update from github
 > manage keys
+> work with locks on db
+> better hand rank module
+> include action time in tablestate and show in client
+> debug=true on digital ocean? why? do disable!
+> action logging
+> delay on card dealing and showdown
+user leave flag, only leave when not playing
 user page
-action timeout
+bring money to and from table
+client make button classes
+client structured code
+enable action timeout/table setting
 give bot a table distribution
 also return totalpot in tablestate
 rotate seats on table
 better lobby
-work with locks on db
 publish on github
 add info on github
 publish poker client

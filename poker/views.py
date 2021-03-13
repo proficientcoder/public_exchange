@@ -23,10 +23,13 @@ def actionFold(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
+            log = table.user.username + ' folded'
+
             index = table.getNextToAct()
             table.lockForUpdate()
             table.setPlayerAction(index, True)
             table.setPlayerCards(index, None)
+            table.addLog(log)
             table.save()
 
     except LookupError:
@@ -41,6 +44,8 @@ def actionCheck(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
+            log = table.user.username + ' checked'
+
             table.lockForUpdate()
             maxbet = 0
 
@@ -53,6 +58,7 @@ def actionCheck(request, id):
                 return JsonResponse({})
 
             table.setPlayerAction(index, True)
+            table.addLog(log)
             table.save()
     except LookupError:
         print('A lookup error happened!')
@@ -79,10 +85,13 @@ def actionCall(request, id):
             if difference > table.getPlayerMoney(i) or difference == 0:
                 return JsonResponse({})
 
+            log = table.user.username + ' called ' + str(difference)
+
             table.setPlayerAction(i, True)
             table.setPlayerNewBet(i, maxbet)
             table.setPlayerMoney(i, table.getPlayerMoney(i) - difference)
 
+            table.addLog(log)
             table.save()
     except LookupError:
         print('A lookup error happened!')
@@ -105,18 +114,21 @@ def actionRaise(request, id, amount):
             # Move the money
             i = table.getNextToAct()
             newBet = table.getPlayerNewBet(i) + amount
-            print(newBet, amount)
 
             if amount != table.getPlayerMoney(i):   # All-in has no limits
                 if amount > table.getPlayerMoney(i) or newBet < maxbet + (table.getBlind() / 2):
                     return JsonResponse({})
 
-            print('raise')
+            log = table.user.username + ' raised with ' + str(amount)
+            if table.getPlayerMoney(i) == 0:
+                log += ' and is allin'
+
             table.setPlayerAction(i, True)
             table.setPlayerMoney(i, table.getPlayerMoney(i) - amount)
             table.setPlayerNewBet(i, table.getPlayerNewBet(i) + amount)
             table.setLastToAct(table.findPrevPlayerToAct(table.getNextToAct()))
 
+            table.addLog(log)
             table.save()
     except LookupError:
         print('A lookup error happened!')
@@ -161,7 +173,7 @@ def tableLeave(request, id):
         if table.isPlayer(i) is True:
             if table.getPlayer(i) == user:
                 table.setPlayer(i, None)
-                table.setPlayerMoney(i, 0) # TODO Move money
+                table.setPlayerMoney(i, 0)  # TODO Move money
                 table.setPlayerCards(i, None)
 
                 table.save()
@@ -174,7 +186,7 @@ def listMyTables(request):
 
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_1=user.pk) | Q(player_2=user.pk))
+    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user.pk) | Q(player_1=user.pk))
     for table in pokerTables:
         tables.append(table.pk)
 
@@ -187,7 +199,7 @@ def listTables(request):
     pokerTables = pokerModels.PokerTable.objects.all()
     for table in pokerTables:
         count = 0
-        for i in range(1, table.size+1):
+        for i in range(0, table.size):
             if getattr(table, f'player_{i}') is not None:
                 count += 1
         tables.append({'id': table.pk,

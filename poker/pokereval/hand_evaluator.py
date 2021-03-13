@@ -346,16 +346,17 @@ class HandEvaluator:
         percentile = 0.0
         
         rank = evaluator.evaluate_rank(cards)
+        return rank
         
-        possible_opponent_hands = list(combinations(LookupTables.deck - set(cards), len(hand)))
-        hands_beaten = 0
-        for h in possible_opponent_hands:
-            possible_opponent_rank = evaluator.evaluate_rank(list(h) + board)
-            if rank < possible_opponent_rank:
-                # you beat this hand
-                hands_beaten += 1
-            elif rank == possible_opponent_rank:
-                hands_beaten += 0.5
-        return float(hands_beaten) / len(list(possible_opponent_hands))
+        # possible_opponent_hands = list(combinations(LookupTables.deck - set(cards), len(hand)))
+        # hands_beaten = 0
+        # for h in possible_opponent_hands:
+        #     possible_opponent_rank = evaluator.evaluate_rank(list(h) + board)
+        #     if rank < possible_opponent_rank:
+        #         # you beat this hand
+        #         hands_beaten += 1
+        #     elif rank == possible_opponent_rank:
+        #         hands_beaten += 0.5
+        # return float(hands_beaten) / len(list(possible_opponent_hands))
 
     evaluate_hand = staticmethod(evaluate_hand)

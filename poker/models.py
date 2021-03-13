@@ -4,13 +4,14 @@ from django.contrib.auth.models import User
 
 
 class PokerTable(models.Model):
+    log = models.CharField(max_length=1024, null=True)
     size = models.IntegerField()
     state = models.IntegerField(default=0)
     dealer = models.IntegerField(default=0)
     next_to_act = models.IntegerField(default=0)
     last_to_act = models.IntegerField(default=0)
     blind = models.IntegerField(default=0)
-    deck = models.CharField(max_length=52, null=True)
+    deck = models.CharField(max_length=104, null=True)
     board = models.CharField(max_length=10, null=True)
     eventTimer = models.DateTimeField(null=True)
     updateTimer = models.DateTimeField(null=True)
