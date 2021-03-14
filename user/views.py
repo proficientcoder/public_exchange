@@ -54,4 +54,7 @@ def testKey(request):
     except LookupError:
         return JsonResponse({'ERR': 'LookupError'})
 
-    return JsonResponse({'username': user.username})
+    if user:
+        return JsonResponse({'username': user.username})
+    else:
+        return JsonResponse({'ERR': 'LookupError'})
