@@ -14,36 +14,73 @@
 > debug=true on digital ocean? why? do disable!
 > action logging
 > delay on card dealing and showdown
+> handle all-in's/autoplay
+> handle side pots
+
+14-03-2021
+deletetable need to check for empty table
+add table size to createtable, bot and client
+add buyin amount to jointable, bot and client
+
+15-03-2021
+kick player when 0 money
+have bot leave on zero money
+merge bot1 and bot2 + create startup batch file
 user leave flag, only leave when not playing
+user join flag, have new player await big blind
+
+16-03-2021
+add chat
 user page
 bring money to and from table
+
+17-03-2021
 client make button classes
 client structured code
+
+18-03-2021
 enable action timeout/table setting
 give bot a table distribution
 also return totalpot in tablestate
+return minbet, maxbet in tablestate
 rotate seats on table
-better lobby
+
+19-03-2021
+update digitalocean
 publish on github
 add info on github
 publish poker client
+run bots on server
+
+20-03-2021
 add lobby button to table
 terminate poker app when all threads exited
 prevent chip pocketing
-have new player await big blind
+
+21-03-2021
 new post on progress
 create poker demo video
+
+22-03-2021
 encrypt api keys
 key bind to ip
-update promotional post
 manage emails
 email recover
-start on api documentation
+
+23-03-2021
+add api error return json
 add table currency and multiplier
 join/leave table (move money from to/account)
-handle all-in's/autoplay
 add more players to table
-handle side pots
+
+24-03-2021
 more contracts (coins or fiat)
 add trading
+
+25-03-2021
+market maker bot
 arbitrage bot
+
+26-03-2021
+start on api documentation
+update promotional post
