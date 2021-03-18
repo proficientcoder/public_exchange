@@ -1,0 +1,6 @@
+[public-exchange.com]
+
+[127.0.0.1]
+test2	Welkom01!	507a2881-2c1f-4b86-b250-56b0c05932ce
+bot1	Welkom01!	a4b73b9d-f0b2-4a5a-aff6-97fd6342402f
+bot2	Welkom01!	68b123ef-ecbb-4353-8dbb-d25ae02a024f

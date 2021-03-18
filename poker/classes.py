@@ -147,6 +147,18 @@ class PokerTable:
     def setPlayerAction(self, nr, what):
         setattr(self.db, f'player_{nr}_action', what)
 
+    def getPlayerLeave(self, nr):
+        return getattr(self.db, f'player_{nr}_leave')
+
+    def setPlayerLeave(self, nr, what):
+        setattr(self.db, f'player_{nr}_leave', what)
+
+    def getPlayerJoin(self, nr):
+        return getattr(self.db, f'player_{nr}_join')
+
+    def setPlayerJoin(self, nr, what):
+        setattr(self.db, f'player_{nr}_join', what)
+
     def setShowDownCounter(self):
         n = datetime.datetime.utcnow()
         now = make_aware(n)
@@ -335,29 +347,32 @@ class PokerTable:
 
 
     def stateReset(self):
-        self.db.state = -1
-        self.db.dealer = 0
-        self.db.next_to_act = 0
-        self.db.last_to_act = 0
-        self.db.blind = 10
+        #self.db.state = -1
+        #self.db.dealer = 0
+        #self.db.next_to_act = 0
+        #self.db.last_to_act = 0
+        #self.db.blind = 10
         self.db.deck = None
         self.db.board = None
         self.db.eventTimer = None
         self.db.updateTimer = None
+
         self.db.player_0_cards = None
         self.db.player_0_new_bet = 0
         self.db.player_0_prev_bet = 0
-        self.db.player_0_money = 50
+        #self.db.player_0_money = 50
         self.db.player_0_action = False
+
         self.db.player_1_cards = None
         self.db.player_1_new_bet = 0
         self.db.player_1_prev_bet = 0
-        self.db.player_1_money = 50
+        #self.db.player_1_money = 50
         self.db.player_1_action = False
+
         self.db.player_2_cards = None
         self.db.player_2_new_bet = 0
         self.db.player_2_prev_bet = 0
-        self.db.player_2_money = 50
+        #self.db.player_2_money = 50
         self.db.player_2_action = False
 
         self.db.state = TableStates.NOGAME
@@ -366,6 +381,23 @@ class PokerTable:
 
 
     def stateNoGame(self):
+        # Kick out people with leave flag
+        for i in self.getPlayerRange():
+            if self.getPlayerLeave(i):
+                log = self.getPlayerName(i) + ' left the table'
+                self.addLog(log)
+                self.setPlayer(i, None)
+                # TODO Move money
+                self.setPlayerLeave(i, False)
+
+        # Kick out poor people
+        for i in self.getPlayerRange():
+            if self.getPlayerMoney(i) == 0 and self.getPlayer(i):
+                log = self.getPlayerName(i) + ' got kicked from the table'
+                self.addLog(log)
+                self.setPlayer(i, None)
+
+        # Enough players to start a game?
         nrActive = 0
         for i in self.getPlayerRange():
             if self.isPlayerReadyToEnter(i):
@@ -378,17 +410,9 @@ class PokerTable:
 
     def stateSetup(self):
         self.createDeck()
-        self.setState(TableStates.SETUP_BUTTON)
-
-        return True
-
-
-    def stateSetupButton(self):
-        self.setDealer(self.findNextPlayerToAct(self.getDealer()))
         self.setState(TableStates.SETUP_DEAL)
 
         return True
-
 
     def stateSetupDeal(self):
         # Deal cards
@@ -404,8 +428,14 @@ class PokerTable:
 
         u = self.getPlayerName(self.getDealer()) + ' has the button'
         self.addLog(u)
+        self.setState(TableStates.SETUP_BUTTON)
 
-        self.setNextToAct(self.findNextPlayerToAct(self.getDealer()))
+        return True
+
+    def stateSetupButton(self):
+        dealer_pos = self.findNextPlayerToAct(self.getDealer())
+        self.setDealer(dealer_pos)
+        self.setNextToAct(self.findNextPlayerToAct(dealer_pos))
         self.setState(TableStates.SETUP_SMALL_BLIND)
 
         return True
@@ -416,11 +446,11 @@ class PokerTable:
         self.setPlayerNewBet(sb_pos, amount)
         self.setPlayerMoney(sb_pos, self.getPlayerMoney(sb_pos) - amount)
         self.setNextToAct(self.findNextPlayerToAct(self.getNextToAct()))
-        self.setState(TableStates.SETUP_BIG_BLIND)
 
         u = self.getPlayerName(sb_pos) + ' posts the small blind of ' + str(amount)
         self.addLog(u)
 
+        self.setState(TableStates.SETUP_BIG_BLIND)
         return True
 
     def stateSetupBigBlind(self):
@@ -431,13 +461,24 @@ class PokerTable:
         self.setNextToAct(self.findNextPlayerToAct(self.getNextToAct()))
         self.setLastToAct(self.findPrevPlayerToAct(self.getNextToAct()))
 
-        self.setState(TableStates.ROUNDS_BETTING)   # Go straight into the betting part
-
         u = self.getPlayerName(bb_pos) + ' posts the big blind of ' + str(amount)
         self.addLog(u)
 
-        return False
+        # Who wants to join?
+        for i in self.getPlayerRange():
+            if self.getPlayerJoin(i):
+                self.setPlayerJoin(i, False)
+                u = self.getPlayerName(bb_pos) + ' joined the table'
+                self.addLog(u)
+                # difference = self.getBlind() - self.getPlayerNewBet(i)
+                # if difference > 0:
+                #     self.setPlayerNewBet(bb_pos, amount)
+                #     self.setPlayerMoney(bb_pos, self.getPlayerMoney(bb_pos) - difference)
+                #     u = self.getPlayerName(i) + ' joining the table adds' + str(amount)
+                #     self.addLog(u)
 
+        self.setState(TableStates.ROUNDS_BETTING)   # Go straight into the betting part
+        return True
 
     def stateRoundsPreBetting(self):
         howManyCanAct = 0

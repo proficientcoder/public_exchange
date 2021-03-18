@@ -116,7 +116,9 @@ def actionRaise(request, id, amount):
             newBet = table.getPlayerNewBet(i) + amount
 
             if amount != table.getPlayerMoney(i):   # All-in has no limits
-                if amount > table.getPlayerMoney(i) or newBet < maxbet + (table.getBlind() / 2):
+                if amount > table.getPlayerMoney(i):
+                    return JsonResponse({})
+                if newBet < maxbet + (table.getBlind() / 2):
                     return JsonResponse({})
 
             log = table.user.username + ' raised with ' + str(amount)
@@ -137,32 +139,45 @@ def actionRaise(request, id, amount):
     return JsonResponse({})
 
 
-def tableCreate(request):
-    t = pokerModels.PokerTable(size=2)
+def tableCreate(request, size):
+    if size < 2 or size > 3:
+        return JsonResponse({'FAIL': 'Invalid table size'})
+
+    t = pokerModels.PokerTable(size=size)
     t.save()
-    return JsonResponse({})
+    return JsonResponse({'SUCCESS': 'Table created'})
 
 
 def tableDelete(request, id):
     # TODO check if table is empty
-    tmp = pokerModels.PokerTable.objects.filter(id=id)
-    tmp.delete()
-
-    return JsonResponse({})
-
-
-def tableJoin(request, id):
-    user = userFunctions.getUserFromKey(request)
-
     table = pokerClasses.PokerTable(request, id)
     for i in table.getPlayerRange():
-        if table.isPlayer(i) is False:
-            table.setPlayer(i, user)
-            table.setPlayerMoney(i, 50)     # TODO Move money
-            table.save()
-            return JsonResponse({})
+        if table.getPlayer():
+            return JsonResponse({'FAIL': 'Table not empty'})
 
-    return JsonResponse({})
+    return JsonResponse({'SUCCESS': 'Table deleted'})
+
+
+def tableJoin(request, id, buyin):
+    user = userFunctions.getUserFromKey(request)
+    table = pokerClasses.PokerTable(request, id)
+
+    if buyin < 40 or buyin > 100:
+        return JsonResponse({'FAIL': 'Invalid amount'})
+
+    bb = buyin * table.getBlind()
+    print(table.getBlind(), bb)
+
+    for i in table.getPlayerRange():
+        if table.isPlayer(i) is False:
+            table.lockForUpdate()
+            table.setPlayer(i, user)
+            table.setPlayerMoney(i, bb)
+            table.setPlayerJoin(i, True)
+            table.save()
+            return JsonResponse({'SUCCESS': 'Joined table'})
+
+    return JsonResponse({'FAIL': 'Could not find seat'})
 
 
 def tableLeave(request, id):
@@ -172,10 +187,8 @@ def tableLeave(request, id):
     for i in table.getPlayerRange():
         if table.isPlayer(i) is True:
             if table.getPlayer(i) == user:
-                table.setPlayer(i, None)
-                table.setPlayerMoney(i, 0)  # TODO Move money
-                table.setPlayerCards(i, None)
-
+                table.lockForUpdate()
+                table.setPlayerLeave(i, True)
                 table.save()
 
     return JsonResponse({})
@@ -193,10 +206,10 @@ def listMyTables(request):
     return JsonResponse({'tables': tables})
 
 
-def listTables(request):
+def listTables(request, size):
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.all()
+    pokerTables = pokerModels.PokerTable.objects.filter(size=size)
     for table in pokerTables:
         count = 0
         for i in range(0, table.size):
