@@ -1,4 +1,7 @@
 [public-exchange.com]
+test2	Welkom01!	36877626-b72b-4b5e-a7cd-d505411a4768
+bot1	Welkom01!	ef58e357-6a4e-4c41-9dfc-8cadd481d1da
+bot2	Welkom01!	80775057-deb7-406b-93d6-6f888e8786e9
 
 [127.0.0.1]
 test2	Welkom01!	507a2881-2c1f-4b86-b250-56b0c05932ce

@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.timezone import make_aware
 from user.models import apiKey
 from django.contrib.auth.models import User
+from django.db import transaction
 
 from poker.pokereval.card import Card
 from poker.pokereval.hand_evaluator import HandEvaluator
@@ -45,9 +46,10 @@ class PokerTable:
             self.user = userFunctions.getUserFromKey(request)
 
     def lockForUpdate(self):
-        tmp = pokerModels.PokerTable.objects.select_for_update(nowait=True).filter(id=self.db.pk)
-        if len(tmp) != 1:
-            raise LookupError   # The table id could not be found
+        with transaction.atomic():
+            tmp = pokerModels.PokerTable.objects.select_for_update(nowait=True).filter(id=self.db.pk)
+            if len(tmp) != 1:
+                raise LookupError   # The table id could not be found
 
         self.db = tmp[0]
 
