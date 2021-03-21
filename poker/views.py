@@ -23,7 +23,7 @@ def actionFold(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            log = table.user.username + ' folded'
+            log = table.username + ' folded'
 
             index = table.getNextToAct()
             table.lockForUpdate()
@@ -44,7 +44,7 @@ def actionCheck(request, id):
 
     try:
         if table.isRemoteUserAlsoTheNextToAct():
-            log = table.user.username + ' checked'
+            log = table.username + ' checked'
 
             table.lockForUpdate()
             maxbet = 0
@@ -87,7 +87,7 @@ def actionCall(request, id):
             if difference == 0:
                 return JsonResponse({'FAIL': 'Nothing to call'})
 
-            log = table.user.username + ' called ' + str(difference)
+            log = table.username + ' called ' + str(difference)
 
             table.setPlayerAction(i, True)
             table.setPlayerNewBet(i, maxbet)
@@ -123,7 +123,7 @@ def actionRaise(request, id, amount):
                 if newBet < maxbet + (table.getBlind() / 2):
                     return JsonResponse({'FAIL': 'Bet to low'})
 
-            log = table.user.username + ' raised with ' + str(amount)
+            log = table.username + ' raised with ' + str(amount)
             if table.getPlayerMoney(i) == 0:
                 log += ' and is allin'
 
@@ -200,10 +200,12 @@ def tableLeave(request, id):
 
 def listMyTables(request):
     user = userFunctions.getUserFromKey(request)
+    if user is None:
+        return JsonResponse({'tables': []})
 
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user.pk) | Q(player_1=user.pk) | Q(player_2=user.pk))
+    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user) | Q(player_1=user) | Q(player_2=user))
     for table in pokerTables:
         tables.append(table.pk)
 

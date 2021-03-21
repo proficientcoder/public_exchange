@@ -33,7 +33,7 @@ class TableStates:
 
 class PokerTable:
     db = None
-    user = None
+    username = None
 
     def __init__(self, request, id):
         tmp = pokerModels.PokerTable.objects.filter(id=id)
@@ -43,7 +43,7 @@ class PokerTable:
         self.db = tmp[0]
 
         if 'key' in request.GET:
-            self.user = userFunctions.getUserFromKey(request)
+            self.username = userFunctions.getUserFromKey(request)
 
     def lockForUpdate(self):
         with transaction.atomic():
@@ -63,7 +63,7 @@ class PokerTable:
         return int(self.db.size)
 
     def getPlayerName(self, nr):
-        return getattr(self.db, f'player_{nr}').username
+        return getattr(self.db, f'player_{nr}')
 
     def setPlayerCards(self, nr, what):
         setattr(self.db, f'player_{nr}_cards', what)
@@ -207,7 +207,7 @@ class PokerTable:
         return position
 
     def isRemoteUserAlsoTheNextToAct(self):
-        return self.getPlayerName(self.getNextToAct()) == self.user.username
+        return self.getPlayerName(self.getNextToAct()) == self.username
 
     def didNextToActRaise(self):
         myBet = self.getPlayerBet(self.getNextToAct())
@@ -301,10 +301,11 @@ class PokerTable:
             'board': self.getBoardCards(),
             'actions': [],
             'log': self.getLog(),
+            'you': None,
         }
 
         if self.user != None:
-            state['you'] = self.user.username
+            state['you'] = self.username
 
         if self.db.eventTimer:
             n = datetime.datetime.utcnow()
@@ -319,7 +320,7 @@ class PokerTable:
         for i in self.getPlayerRange():
             if self.isPlayer(i):
                 state['players'].append({'id': i,
-                                         'name': self.getPlayer(i).username,
+                                         'name': self.getPlayer(i),
                                          'balance': self.getPlayerMoney(i),
                                          'new_bet': self.getPlayerNewBet(i),
                                          'prev_bet': self.getPlayerPrevBet(i),

@@ -55,6 +55,6 @@ def testKey(request):
         return JsonResponse({'ERR': 'LookupError'})
 
     if user:
-        return JsonResponse({'username': user.username})
+        return JsonResponse({'username': user})
     else:
         return JsonResponse({'ERR': 'LookupError'})
