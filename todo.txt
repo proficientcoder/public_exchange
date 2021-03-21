@@ -16,75 +16,53 @@
 > delay on card dealing and showdown
 > handle all-in's/autoplay
 > handle side pots
-
-14-03-2021
 > deletetable need to check for empty table
 > add table size to createtable, bots and client
 > add buyin amount to jointable, bot and client
-
-15-03-2021
 > kick player when 0 money
 > merge bot1 and bot2 + create startup batch file
 > user leave flag, only leave when not playing
 > user join flag, have new player await big blind
+> client make button class, make slider class
+> give bot a table distribution
 
-19-03-2021
+prevent double key/account on table
+make grid class for lobby with filter, sort and scroll
+add slider to join button for buyin amount
+make listTables return all tables, client does filtering, later add ?coin=fiat
+move past key to top left, same color as key, then move key also to left
+add message queue to client
+
 add chat
+add tableid to table window
 user page
 bring money to and from table
-
-20-03-2021
-client make button class, make slider class
 client structured code
-
-21-03-2021
 enable action timeout/table setting
-> give bot a table distribution
 also return totalpot in tablestate
 return minbet, maxbet in tablestate
 rotate seats on table
-
-23-03-2021
 update digitalocean
 publish on github
 add info on github
 publish poker client
 run bots on server
-
-23-03-2021
 add lobby button to table
 terminate poker app when all threads exited
 prevent chip pocketing
-
-24-03-2021
 new post on progress
 create poker demo video
-
-25-03-2021
 encrypt api keys
 key bind to ip
 manage emails
 email recover
-
-26-03-2021
 add api error return json
 add table currency and multiplier
 join/leave table (move money from to/account)
 add more players to table
-
-27-03-2021
 more contracts (coins or fiat)
 add trading
-
-28-03-2021
-add trading
-
-29-03-2021
 market maker bot
 arbitrage bot
-
-30-03-2021
 start on api documentation
-
-31-03-2021
 update promotional post

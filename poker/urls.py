@@ -17,5 +17,5 @@ urlpatterns = [
     path('actionCheck/<int:id>/', pokerViews.actionCheck, name='pokerActionCheck'),
 
     path('listMyTables/', pokerViews.listMyTables, name='pokerListMyTables'),
-    path('listTables/<int:size>/', pokerViews.listTables, name='pokerListTables'),
+    path('listTables/', pokerViews.listTables, name='pokerListTables'),
 ]

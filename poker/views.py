@@ -82,8 +82,10 @@ def actionCall(request, id):
             i = table.getNextToAct()
             difference = maxbet - table.getPlayerNewBet(i)
 
-            if difference > table.getPlayerMoney(i) or difference == 0:
-                return JsonResponse({})
+            difference = min(table.getPlayerMoney(i), difference)
+
+            if difference == 0:
+                return JsonResponse({'FAIL': 'Nothing to call'})
 
             log = table.user.username + ' called ' + str(difference)
 
@@ -97,7 +99,7 @@ def actionCall(request, id):
         print('A lookup error happened!')
         pass
 
-    return JsonResponse({})
+    return JsonResponse({'SUCCESS': 'Called'})
 
 
 def actionRaise(request, id, amount):
@@ -117,9 +119,9 @@ def actionRaise(request, id, amount):
 
             if amount != table.getPlayerMoney(i):   # All-in has no limits
                 if amount > table.getPlayerMoney(i):
-                    return JsonResponse({})
+                    return JsonResponse({'FAIL': 'Dont have that money'})
                 if newBet < maxbet + (table.getBlind() / 2):
-                    return JsonResponse({})
+                    return JsonResponse({'FAIL': 'Bet to low'})
 
             log = table.user.username + ' raised with ' + str(amount)
             if table.getPlayerMoney(i) == 0:
@@ -144,17 +146,19 @@ def tableCreate(request, size):
         return JsonResponse({'FAIL': 'Invalid table size'})
 
     t = pokerModels.PokerTable(size=size)
+    t.blind = 10
     t.save()
     return JsonResponse({'SUCCESS': 'Table created'})
 
 
 def tableDelete(request, id):
-    # TODO check if table is empty
     table = pokerClasses.PokerTable(request, id)
     for i in table.getPlayerRange():
-        if table.getPlayer():
+        if table.getPlayer(i):
             return JsonResponse({'FAIL': 'Table not empty'})
 
+    table.delete()
+    # table.save()
     return JsonResponse({'SUCCESS': 'Table deleted'})
 
 
@@ -199,17 +203,21 @@ def listMyTables(request):
 
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user.pk) | Q(player_1=user.pk))
+    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user.pk) | Q(player_1=user.pk) | Q(player_2=user.pk))
     for table in pokerTables:
         tables.append(table.pk)
 
     return JsonResponse({'tables': tables})
 
 
-def listTables(request, size):
+def listTables(request):
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.filter(size=size)
+    pokerTables = pokerModels.PokerTable.objects.all()
+
+    if 'size' in request.GET:
+        pokerTables = pokerTables.filter(size=request.GET['size'])
+
     for table in pokerTables:
         count = 0
         for i in range(0, table.size):

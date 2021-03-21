@@ -54,6 +54,9 @@ class PokerTable:
     def save(self):
         self.db.save()
 
+    def delete(self):
+        self.db.delete()
+
     def getSize(self):
         return int(self.db.size)
 
@@ -426,8 +429,6 @@ class PokerTable:
                 card2 = self.drawCardFromDeck()
                 self.setPlayerCards(i, card1 + card2)
 
-        u = self.getPlayerName(self.getDealer()) + ' has the button'
-        self.addLog(u)
         self.setState(TableStates.SETUP_BUTTON)
 
         return True
@@ -436,8 +437,10 @@ class PokerTable:
         dealer_pos = self.findNextPlayerToAct(self.getDealer())
         self.setDealer(dealer_pos)
         self.setNextToAct(self.findNextPlayerToAct(dealer_pos))
-        self.setState(TableStates.SETUP_SMALL_BLIND)
+        u = self.getPlayerName(dealer_pos) + ' has the button'
+        self.addLog(u)
 
+        self.setState(TableStates.SETUP_SMALL_BLIND)
         return True
 
     def stateSetupSmallBlind(self):
@@ -662,7 +665,9 @@ class PokerTable:
         for i in self.getPlayerRange():
             if self.getPlayerCards(i) is not None:
                 winner = i
-        winnings += self.getPlayerPrevBet(winner)
+            winnings += self.getPlayerPrevBet(i)
+            winnings += self.getPlayerNewBet(i)
+
         self.setPlayerMoney(winner, self.getPlayerMoney(winner) + winnings)
 
         log = self.getPlayerName(winner) + ' won ' + str(winnings)
