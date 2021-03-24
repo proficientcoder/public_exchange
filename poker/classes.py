@@ -304,7 +304,7 @@ class PokerTable:
             'you': None,
         }
 
-        if self.user != None:
+        if self.username != None:
             state['you'] = self.username
 
         if self.db.eventTimer:
@@ -326,12 +326,12 @@ class PokerTable:
                                          'prev_bet': self.getPlayerPrevBet(i),
                                          'cards': self.getPlayerCards(i),
                                          })
-                if self.user != None:
-                    if self.getPlayer(i) != self.user and self.getState() != TableStates.SHOWDOWN:
+                if self.username != None:
+                    if self.getPlayer(i) != self.username and self.getState() != TableStates.SHOWDOWN:
                         if state['players'][-1]['cards']:
                             state['players'][-1]['cards'] = ''
 
-                    if i == self.getNextToAct() and self.getPlayer(i) == self.user and self.getState() == TableStates.ROUNDS_BETTING:
+                    if i == self.getNextToAct() and self.getPlayer(i) == self.username and self.getState() == TableStates.ROUNDS_BETTING:
                         actor_bet = self.getPlayerNewBet(self.getNextToAct())
 
                         if max_bet == actor_bet:
