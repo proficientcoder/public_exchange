@@ -1,0 +1,44 @@
+apt-get update && apt-get upgrade -y
+
+apt-get install nginx
+
+mkdir -p /etc/nginx/ssl/public-exchange.com
+cd /etc/nginx/ssl/public-exchange.com
+openssl genrsa -des3 -out server.key 2048
+openssl rsa -in server.key -out server.key
+openssl req -new -key server.key -out server.csr
+
+apt install certbot python3-certbot-nginx
+certbot --nginx -d public-exchange.com
+
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+nano /etc/nginx/sites-available/public-exchange.com
+
+upstream publicexchange {
+    server 192.168.1.3;
+}
+
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name public-exchange.com;
+
+    ssl_certificate         /etc/nginx/ssl/public-exchange.com/server.crt;
+    ssl_certificate_key     /etc/nginx/ssl/public-exchange.com/server.key;
+    ssl_trusted_certificate /etc/nginx/ssl/public-exchange.com/ca-certs.pem;
+
+    location / {
+        proxy_pass http://publicexchange ;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+ln -s /etc/nginx/sites-available/public-exchange.com /etc/nginx/sites-enabled/public-exchange.com
+
+service nginx configtest
+service nginx reload
+

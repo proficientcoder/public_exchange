@@ -1,0 +1,62 @@
+apt-get install python3-pip python3-dev libpq-dev postgresql postgresql-contrib nginx -y
+pip3 install --upgrade pip
+pip3 install django gunicorn psycopg2
+nano /etc/environment
+DEVELOPMENT_MODE=True
+
+reboot
+
+git clone https://proficientcoder:PGnJjm5eMDej@github.com/proficientcoder/public_exchange.git
+pip3 install -r requirements.txt
+
+gunicorn --bind 0.0.0.0:8000 core.wsgi
+
+nano /etc/systemd/system/gunicorn.service
+
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=krakkus
+Group=www-data
+Environment="DEVELOPMENT_MODE=True"
+WorkingDirectory=/home/krakkus/public_exchange
+ExecStart=/home/krakkus/.local/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/krakkus/public_exchange/public_exchange.sock core.wsgi:application --preload
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl start gunicorn
+systemctl enable gunicorn
+systemctl status gunicorn
+
+nano /etc/nginx/sites-available/gunicorn
+
+server {
+    listen 80;
+    server_name public-exchange.com;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/krakkus/public_exchange;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/krakkus/public_exchange/public_exchange.sock;
+    }
+}
+
+ln -s /etc/nginx/sites-available/gunicorn /etc/nginx/sites-enabled/
+
+nginx -t
+
+systemctl restart nginx
+
+
+# _____________________
+
+git clean -fxd
+git pull --rebase --autostash
