@@ -28,6 +28,7 @@ ExecStart=/home/krakkus/.local/bin/gunicorn --access-logfile - --workers 3 --bin
 WantedBy=multi-user.target
 
 systemctl daemon-reload
+systemctl stop gunicorn
 systemctl start gunicorn
 systemctl enable gunicorn
 systemctl status gunicorn
