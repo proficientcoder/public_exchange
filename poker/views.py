@@ -9,7 +9,7 @@ import user.functions as userFunctions
 def pokerTableState(request, id):
     table = pokerClasses.PokerTable(request, id)
 
-    table.user = userFunctions.getUserFromKey(request)
+    table.username = userFunctions.getUserFromKey(request)
 
     table.updateTableState()
 
@@ -142,7 +142,7 @@ def actionRaise(request, id, amount):
 
 
 def tableCreate(request, size):
-    if size < 2 or size > 3:
+    if size < 2 or size > 9:
         return JsonResponse({'FAIL': 'Invalid table size'})
 
     t = pokerModels.PokerTable(size=size)
@@ -164,13 +164,21 @@ def tableDelete(request, id):
 
 def tableJoin(request, id, buyin):
     user = userFunctions.getUserFromKey(request)
+
+    if user is None:
+        return JsonResponse({'FAIL': 'No user specified in key parameter'})
+
     table = pokerClasses.PokerTable(request, id)
 
     if buyin < 40 or buyin > 100:
         return JsonResponse({'FAIL': 'Invalid amount'})
 
     bb = buyin * table.getBlind()
-    print(table.getBlind(), bb)
+    #print(table.getBlind(), bb)
+
+    for i in table.getPlayerRange():
+        if table.getPlayer(i) == user:
+            return JsonResponse({'FAIL': 'Already seated on this table'})
 
     for i in table.getPlayerRange():
         if table.isPlayer(i) is False:
@@ -205,7 +213,16 @@ def listMyTables(request):
 
     tables = []
 
-    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user) | Q(player_1=user) | Q(player_2=user))
+    pokerTables = pokerModels.PokerTable.objects.filter(Q(player_0=user) |
+                                                        Q(player_1=user) |
+                                                        Q(player_2=user) |
+                                                        Q(player_3=user) |
+                                                        Q(player_4=user) |
+                                                        Q(player_5=user) |
+                                                        Q(player_6=user) |
+                                                        Q(player_7=user) |
+                                                        Q(player_8=user) |
+                                                        Q(player_9=user))
     for table in pokerTables:
         tables.append(table.pk)
 

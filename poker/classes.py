@@ -301,11 +301,8 @@ class PokerTable:
             'board': self.getBoardCards(),
             'actions': [],
             'log': self.getLog(),
-            'you': None,
+            'you': self.username,
         }
-
-        if self.username != None:
-            state['you'] = self.username
 
         if self.db.eventTimer:
             n = datetime.datetime.utcnow()
@@ -326,7 +323,7 @@ class PokerTable:
                                          'prev_bet': self.getPlayerPrevBet(i),
                                          'cards': self.getPlayerCards(i),
                                          })
-                if self.username != None:
+                if self.username is not None:
                     if self.getPlayer(i) != self.username and self.getState() != TableStates.SHOWDOWN:
                         if state['players'][-1]['cards']:
                             state['players'][-1]['cards'] = ''
@@ -353,35 +350,18 @@ class PokerTable:
 
 
     def stateReset(self):
-        #self.db.state = -1
-        #self.db.dealer = 0
-        #self.db.next_to_act = 0
-        #self.db.last_to_act = 0
-        #self.db.blind = 10
         self.db.deck = None
         self.db.board = None
         self.db.eventTimer = None
         self.db.updateTimer = None
-
-        self.db.player_0_cards = None
-        self.db.player_0_new_bet = 0
-        self.db.player_0_prev_bet = 0
-        #self.db.player_0_money = 50
-        self.db.player_0_action = False
-
-        self.db.player_1_cards = None
-        self.db.player_1_new_bet = 0
-        self.db.player_1_prev_bet = 0
-        #self.db.player_1_money = 50
-        self.db.player_1_action = False
-
-        self.db.player_2_cards = None
-        self.db.player_2_new_bet = 0
-        self.db.player_2_prev_bet = 0
-        #self.db.player_2_money = 50
-        self.db.player_2_action = False
-
         self.db.state = TableStates.NOGAME
+
+        for i in self.getPlayerRange():
+            self.setPlayerCards(i, None)
+            self.setPlayerNewBet(i, 0)
+            self.setPlayerPrevBet(i, 0)
+            self.setPlayerAction(i, False)
+
 
         return True
 

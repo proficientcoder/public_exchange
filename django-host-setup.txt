@@ -20,7 +20,7 @@ After=network.target
 [Service]
 User=krakkus
 Group=www-data
-Environment="DEVELOPMENT_MODE=True"
+Environment="DEVELOPMENT_MODE=False"
 WorkingDirectory=/home/krakkus/public_exchange
 ExecStart=/home/krakkus/.local/bin/gunicorn --access-logfile - --workers 3 --bind unix:/home/krakkus/public_exchange/public_exchange.sock core.wsgi:application --preload
 
@@ -56,8 +56,11 @@ nginx -t
 
 systemctl restart nginx
 
+sudo nano /etc/hosts
+192.168.1.12	POSTGRES1
+
 
 # _____________________
-
+export DEVELOPMENT_MODE=False
 git clean -fxd
 git pull --rebase --autostash

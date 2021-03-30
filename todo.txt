@@ -18,21 +18,23 @@
 > handle side pots
 > deletetable need to check for empty table
 > add table size to createtable, bots and client
-> add buyin amount to jointable, bot and client
+> add buyin amount to jointable, bots and client
 > kick player when 0 money
 > merge bot1 and bot2 + create startup batch file
 > user leave flag, only leave when not playing
 > user join flag, have new player await big blind
 > client make button class, make slider class
 > give bot a table distribution
+> prevent double key/account on table
+> add slider to join button for buyin amount
+> make listTables return all tables, client does filtering, later add ?coin=fiat
+> move past key to top left, same color as key, then move key also to left
+> rotate seats on table
+> update digitalocean
 
-prevent double key/account on table
+add more players to table
 make grid class for lobby with filter, sort and scroll
-add slider to join button for buyin amount
-make listTables return all tables, client does filtering, later add ?coin=fiat
-move past key to top left, same color as key, then move key also to left
 add message queue to client
-
 add chat
 add tableid to table window
 user page
@@ -41,8 +43,6 @@ client structured code
 enable action timeout/table setting
 also return totalpot in tablestate
 return minbet, maxbet in tablestate
-rotate seats on table
-update digitalocean
 publish on github
 add info on github
 publish poker client
@@ -59,7 +59,6 @@ email recover
 add api error return json
 add table currency and multiplier
 join/leave table (move money from to/account)
-add more players to table
 more contracts (coins or fiat)
 add trading
 market maker bot

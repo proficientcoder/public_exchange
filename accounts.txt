@@ -1,9 +1,15 @@
 [public-exchange.com]
-test2	Welkom01!	36877626-b72b-4b5e-a7cd-d505411a4768
-bot1	Welkom01!	ef58e357-6a4e-4c41-9dfc-8cadd481d1da
-bot2	Welkom01!	80775057-deb7-406b-93d6-6f888e8786e9
+test2	Welkom01!	960e565b-82a5-4560-81d4-815925fc8b4f
+bot1	Welkom01!	67e2bb3b-8d46-4fca-85e3-af484b4cf5a9
+bot2	Welkom01!	2525ebba-02f7-4ff2-b531-81b675b461cd
 
 [127.0.0.1]
-test2	Welkom01!	507a2881-2c1f-4b86-b250-56b0c05932ce
-bot1	Welkom01!	a4b73b9d-f0b2-4a5a-aff6-97fd6342402f
-bot2	Welkom01!	68b123ef-ecbb-4353-8dbb-d25ae02a024f
+test2	Welkom01!	bf6e2d39-6c4d-4696-8748-43857a6cd77c
+bot1	Welkom01!	a52c1caa-ece2-4687-8ce2-5ccf09a6d2b2
+bot2	Welkom01!	13dcad7b-b496-457a-9e76-4303baa491a0
+bot3	Welkom01!	99aaf0af-75dd-4346-9caa-838b3738618f
+bot4	Welkom01!	3dc06724-fd36-41ce-bf63-0a47fe2d5890
+bot5	Welkom01!	5ed78f00-8877-4b2a-9135-06638d3f86cb
+bot6	Welkom01!	3feb2f38-7b01-4dfc-aca4-3c2d187d6356
+bot7	Welkom01!	3fedc7dd-bcc3-47ce-afa4-907196b95108
+bot8	Welkom01!	c535d143-2a28-450e-ba37-43953cd7f854
