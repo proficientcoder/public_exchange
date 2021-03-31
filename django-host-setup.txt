@@ -62,5 +62,6 @@ sudo nano /etc/hosts
 
 # _____________________
 export DEVELOPMENT_MODE=False
-git clean -fxd
-git pull --rebase --autostash
+rm -rf public-exchange
+git clone https://proficientcoder:PGnJjm5eMDej@github.com/proficientcoder/public_exchange.git
+

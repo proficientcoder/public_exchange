@@ -1,15 +1,21 @@
 [public-exchange.com]
-test2	Welkom01!	960e565b-82a5-4560-81d4-815925fc8b4f
-bot1	Welkom01!	67e2bb3b-8d46-4fca-85e3-af484b4cf5a9
-bot2	Welkom01!	2525ebba-02f7-4ff2-b531-81b675b461cd
+test2	<password>	e5eba729-1dea-4a18-954c-e7b3baa8128c
+bot1	<password>	1db9ffb2-cac1-41a2-864d-4d8df06f27ba
+bot2	<password>	ecd95952-ef77-42cb-baaa-9ecb437103bb
+bot3	<password>	392ddd68-aa2e-4f1f-afe0-e74ed016d211
+bot4	<password>	05d30039-bdbc-4588-be21-b585e8e15933
+bot5	<password>	a9c34dfc-fd4d-4b2a-b5b4-f304b0ebec35
+bot6	<password>	a0c891d0-0aa6-46d0-a79e-414bff9dd31a
+bot7	<password>	a2966420-8231-47d5-acd2-49689a52e861
+bot8	<password>	e11f34fa-f416-44ae-87e3-914eb22ec861
 
 [127.0.0.1]
-test2	Welkom01!	bf6e2d39-6c4d-4696-8748-43857a6cd77c
-bot1	Welkom01!	a52c1caa-ece2-4687-8ce2-5ccf09a6d2b2
-bot2	Welkom01!	13dcad7b-b496-457a-9e76-4303baa491a0
-bot3	Welkom01!	99aaf0af-75dd-4346-9caa-838b3738618f
-bot4	Welkom01!	3dc06724-fd36-41ce-bf63-0a47fe2d5890
-bot5	Welkom01!	5ed78f00-8877-4b2a-9135-06638d3f86cb
-bot6	Welkom01!	3feb2f38-7b01-4dfc-aca4-3c2d187d6356
-bot7	Welkom01!	3fedc7dd-bcc3-47ce-afa4-907196b95108
-bot8	Welkom01!	c535d143-2a28-450e-ba37-43953cd7f854
+test2	<password>	bf6e2d39-6c4d-4696-8748-43857a6cd77c
+bot1	<password>	a52c1caa-ece2-4687-8ce2-5ccf09a6d2b2
+bot2	<password>	13dcad7b-b496-457a-9e76-4303baa491a0
+bot3	<password>	99aaf0af-75dd-4346-9caa-838b3738618f
+bot4	<password>	3dc06724-fd36-41ce-bf63-0a47fe2d5890
+bot5	<password>	5ed78f00-8877-4b2a-9135-06638d3f86cb
+bot6	<password>	3feb2f38-7b01-4dfc-aca4-3c2d187d6356
+bot7	<password>	3fedc7dd-bcc3-47ce-afa4-907196b95108
+bot8	<password>	c535d143-2a28-450e-ba37-43953cd7f854
