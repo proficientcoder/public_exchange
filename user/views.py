@@ -32,7 +32,7 @@ def home(request):
 
 @login_required()
 def createKey(request):
-    client_ip = request.META['REMOTE_ADDR']
+    client_ip = userFunctions.get_client_ip(request)
 
     key = apiKey(user=request.user, key=str(uuid.uuid4()), ip=client_ip)
     key.save()

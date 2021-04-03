@@ -30,9 +30,18 @@ def getUserFromKey(request):
         u = tmp[0]
         cache[key] = u
 
-    client_ip = request.META['REMOTE_ADDR']
+    client_ip = get_client_ip(request)
     #print(u.ip, client_ip)
     if u.ip != client_ip:
         return None
 
     return u.user.username
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
