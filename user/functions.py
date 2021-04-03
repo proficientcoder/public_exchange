@@ -20,14 +20,19 @@ def getUserFromKey(request):
     key = request.GET['key']
 
     if key in cache:
-        return cache[key]
+        u = cache[key]
+    else:
+        tmp = apiKey.objects.filter(key=key)
 
-    tmp = apiKey.objects.filter(key=key)
+        if len(tmp) != 1:
+            return None
 
-    if len(tmp) != 1:
+        u = tmp[0]
+        cache[key] = u
+
+    client_ip = request.META['REMOTE_ADDR']
+    #print(u.ip, client_ip)
+    if u.ip != client_ip:
         return None
 
-    u = tmp[0].user.username
-    cache[key] = u
-
-    return u
+    return u.user.username

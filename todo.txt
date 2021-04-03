@@ -32,6 +32,24 @@
 > rotate seats on table
 > update digitalocean
 
+###############
+
+auto-bind api key to IP
+table spacing in account-details
+proficientcoder topics without root group 'General discussion'
+download is blocked by bing
+installation is blocked by Windows defender
+table order in lobby gets scrambled, needs sorting
+when closing lobby, close application
+client join crashes bots
+
+###############
+
+client button feedback
+paste-key button mactch color with key at first enter
+rename development to local
+move username on site to center with different color and Welcome
+site needs logo
 add more players to table
 make grid class for lobby with filter, sort and scroll
 add message queue to client

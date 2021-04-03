@@ -59,8 +59,13 @@ systemctl restart nginx
 sudo nano /etc/hosts
 192.168.1.12	POSTGRES1
 
+# _____________________
+
+
+sudo journalctl -u gunicorn -n 1500
 
 # _____________________
+ 
 export DEVELOPMENT_MODE=False
 rm -rf public-exchange
 git clone https://proficientcoder:PGnJjm5eMDej@github.com/proficientcoder/public_exchange.git

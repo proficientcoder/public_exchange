@@ -14,7 +14,7 @@
       <tr><th>Key</th><th>Binding</th><th>Action</th></tr>
       {% for k in keys %}
       <tr>
-        <td>{{ k.key }}</td><td>0.0.0.0</td><td><a href="{% url 'userDeleteKey' k.id %}">Delete</a></td>
+        <td>{{ k.key }}</td><td>{{ k.ip }}</td><td><a href="{% url 'userDeleteKey' k.id %}">Delete</a></td>
       </tr>
       {% endfor %}
     </table>

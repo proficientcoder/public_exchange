@@ -32,7 +32,9 @@ def home(request):
 
 @login_required()
 def createKey(request):
-    key = apiKey(user=request.user, key=str(uuid.uuid4()))
+    client_ip = request.META['REMOTE_ADDR']
+
+    key = apiKey(user=request.user, key=str(uuid.uuid4()), ip=client_ip)
     key.save()
 
     return redirect('userHome')
