@@ -1,0 +1,5 @@
+This is a django service project which can be started as a standalone.
+
+On the windows command line:
+SET DEVELOPMENT_MODE=True
+python manage.py runserver
