@@ -31,20 +31,17 @@
 > move past key to top left, same color as key, then move key also to left
 > rotate seats on table
 > update digitalocean
+x proficientcoder topics without root group 'General discussion'
+> auto-bind api key to IP
+> table order in lobby gets scrambled, needs sorting
+> when closing lobby, close application
+> client join crashes bots
 
 ###############
 
-auto-bind api key to IP
 table spacing in account-details
-proficientcoder topics without root group 'General discussion'
 download is blocked by bing
 installation is blocked by Windows defender
-table order in lobby gets scrambled, needs sorting
-when closing lobby, close application
-client join crashes bots
-
-###############
-
 client button feedback
 paste-key button mactch color with key at first enter
 rename development to local

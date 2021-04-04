@@ -67,6 +67,9 @@ sudo journalctl -u gunicorn -n 1500
 # _____________________
  
 export DEVELOPMENT_MODE=False
-rm -rf public-exchange
+rm -rf public_exchange
 git clone https://proficientcoder:PGnJjm5eMDej@github.com/proficientcoder/public_exchange.git
 
+systemctl daemon-reload
+systemctl stop gunicorn
+systemctl start gunicorn
