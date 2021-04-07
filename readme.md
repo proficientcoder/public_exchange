@@ -30,3 +30,6 @@ Some documentation can be found here.
 ## Bots
 There are also support bots which can be found here.
 [https://github.com/proficientcoder/helper_bots](https://github.com/proficientcoder/helper_bots)
+
+## Forum
+[https://proficientcoder.com/](https://proficientcoder.com/)
