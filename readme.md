@@ -22,7 +22,7 @@ Then to actually start the server
 
 ## Endpoints
 The following local URL will show you all of the available endpoints.
-[https://127.0.0.0/endpoints/](https://127.0.0.0/endpoints/)
+[http://127.0.0.0/endpoints/](http://127.0.0.0/endpoints/)
 
 Some documentation can be found here.
 [https://proficientcoder.com/viewtopic.php?f=2&t=5](https://proficientcoder.com/viewtopic.php?f=2&t=5)
