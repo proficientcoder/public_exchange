@@ -2,7 +2,7 @@
 
 
 ## Django
-This application is written in Django. A python web application framework which enables easy scaling.
+This server is written in Django. A python web application framework which enables easy scaling.
 
 ## Client
 There already is a poker client written in Pygame which can be found [on this github repository](https://github.com/proficientcoder/poker_client)
@@ -20,8 +20,8 @@ After cloning the repository you must set an environment variable to let the pro
 Then to actually start the server
 ``python manage.py runserver 0.0.0.0``
 
-## Endpoints
-The following local URL will show you all of the available endpoints.
+## Endpoints, html and json
+The following local URL will show you all the available endpoints.
 [http://127.0.0.0/endpoints/](http://127.0.0.0/endpoints/)
 
 Some documentation can be found here.
