@@ -42,3 +42,23 @@ def depositFiat(request):
     else:
         form = DepositFiatForm()
     return render(request, 'exchange/depositFiat.html', {'form': form})
+
+
+@login_required()
+def viewTickers(request):
+    return render(request, 'exchange/viewTickers.html')
+
+
+@login_required()
+def viewPairs(request):
+    return render(request, 'exchange/viewPairs.html')
+
+
+@login_required()
+def viewOrders(request):
+    return render(request, 'exchange/viewOrders.html')
+
+
+@login_required()
+def viewOwnerships(request):
+    return render(request, 'exchange/viewOwnerships.html')

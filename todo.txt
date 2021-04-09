@@ -1,3 +1,5 @@
+# Done
+
 > deploy on digital ocean
 > create a database link
 > connect domain to digitalocean
@@ -36,12 +38,17 @@ x proficientcoder topics without root group 'General discussion'
 > table order in lobby gets scrambled, needs sorting
 > when closing lobby, close application
 > client join crashes bots
+> publish on github
+> add info on github
+> publish poker client
+> key bind to ip
+> start on api documentation
+> run bots on server
 
-###############
+
+# Todo
 
 table spacing in account-details
-download is blocked by bing
-installation is blocked by Windows defender
 client button feedback
 paste-key button mactch color with key at first enter
 rename development to local
@@ -58,17 +65,12 @@ client structured code
 enable action timeout/table setting
 also return totalpot in tablestate
 return minbet, maxbet in tablestate
-publish on github
-add info on github
-publish poker client
-run bots on server
 add lobby button to table
 terminate poker app when all threads exited
 prevent chip pocketing
 new post on progress
 create poker demo video
 encrypt api keys
-key bind to ip
 manage emails
 email recover
 add api error return json
@@ -78,5 +80,9 @@ more contracts (coins or fiat)
 add trading
 market maker bot
 arbitrage bot
-start on api documentation
 update promotional post
+
+# Needs money
+
+download is blocked by bing
+installation is blocked by Windows defender

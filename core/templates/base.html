@@ -49,8 +49,9 @@
 		<a href="{% url 'userRegister' %}" style="float:right;">Register</a>
 		{% endif %}
 		{% if user.is_authenticated %}
-		<a href="{% url 'userLogout' %}" style="float:right;">Logout({{ user.username }})</a>
-		<a href="{% url 'userHome' %}" style="float:right;">Account</a>
+		<a href="{% url 'userLogout' %}" style="float:right;">Logout {{ user.username }}</a>
+		<a href="{% url 'userHome' %}" style="float:left;">User</a>
+		<a href="{% url 'exchangeHome' %}" style="float:left;">Exchange</a>
 		{% endif %}
 	</div>
  

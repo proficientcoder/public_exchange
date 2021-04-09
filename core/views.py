@@ -30,13 +30,13 @@ def endpoints(request):
         if p[0] != 'admin/':
             url = '/' + ''.join(p)
             ep = {'url': url}
-            if url in index:
-                ep.update(index[url])
+            # if url in index:
+            #     ep.update(index[url])
             all_endpoints.append(ep)
 
     return render(request, 'core/endpoints.html', {'endpoints': all_endpoints})
 
 
-index = {'/endpoints/': {'type': 'html', 'description': 'Returns a list of all the endpoints', 'link': ''},
-         '/poker/listTables/': {'type': 'json', 'description': 'Returns a list of all poker tables', 'link': ''},
-         }
+# index = {'/endpoints/': {'type': 'html', 'description': 'Returns a list of all the endpoints', 'link': ''},
+#          '/poker/listTables/': {'type': 'json', 'description': 'Returns a list of all poker tables', 'link': ''},
+#          }
